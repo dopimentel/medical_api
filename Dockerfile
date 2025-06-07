@@ -5,7 +5,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y libpq-dev && pip install --upgrade pip
 
 COPY pyproject.toml poetry.lock* ./
-RUN pip install poetry && poetry config virtualenvs.create false && poetry install
+RUN pip install poetry && poetry config virtualenvs.create false && poetry install --no-root
 
 COPY . .
 
