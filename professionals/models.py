@@ -6,7 +6,7 @@ class Professional(models.Model):
     Model representing health professionals.
     """
 
-    name = models.CharField("Nome Social", max_length=255)
+    preferred_name = models.CharField("Nome Social", max_length=255)
     profession = models.CharField("Profissão", max_length=100)
     address = models.TextField("Endereço")
     contact = models.CharField("Contato", max_length=100)
@@ -16,7 +16,7 @@ class Professional(models.Model):
     class Meta:
         verbose_name = "Profissional"
         verbose_name_plural = "Profissionais"
-        ordering = ["name"]
+        ordering = ["preferred_name"]
 
     def __str__(self):
-        return f"{self.name} - {self.profession}"
+        return f"{self.preferred_name} - {self.profession}"

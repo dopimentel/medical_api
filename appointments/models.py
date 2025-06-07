@@ -15,7 +15,6 @@ class Appointment(models.Model):
         related_name="appointments",
         verbose_name="Profissional",
     )
-    notes = models.TextField("Observações", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -25,7 +24,9 @@ class Appointment(models.Model):
         ordering = ["-date"]
 
     def __str__(self):
-        return f"Consulta com {self.professional.name} em {self.date.strftime('%d/%m/%Y %H:%M')}"
+        nome = self.professional.preferred_name
+        data = self.date.strftime("%d/%m/%Y %H:%M")
+        return f"Consulta com {nome} em {data}"
 
     def clean(self):
         """Valida se já existe consulta para este profissional neste horário"""
@@ -38,6 +39,7 @@ class Appointment(models.Model):
             if overlapping_appointments.exists():
                 raise ValidationError(
                     {
-                        "date": "Já existe uma consulta marcada para este profissional neste horário."
+                        "date": "Já existe uma consulta marcada para este profissional "
+                        "neste horário."
                     }
                 )

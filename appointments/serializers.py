@@ -17,11 +17,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
             "date",
             "professional",
             "professional_detail",
-            "notes",
-            "created_at",
-            "updated_at",
         ]
-        read_only_fields = ["created_at", "updated_at"]
 
     def validate(self, attrs):
         """
@@ -44,10 +40,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
                 )
 
             if overlapping_appointments.exists():
-                raise serializers.ValidationError(
-                    {
-                        "date": "Já existe uma consulta marcada para este profissional neste horário."
-                    }
-                )
+                msg = "Já existe uma consulta marcada para este profissional neste horário."
+                raise serializers.ValidationError({"date": msg})
 
         return attrs

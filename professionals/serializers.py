@@ -11,11 +11,8 @@ class ProfessionalSerializer(serializers.ModelSerializer):
         model = Professional
         fields = [
             "id",
-            "name",
+            "preferred_name",
             "profession",
             "address",
             "contact",
-            "created_at",
-            "updated_at",
         ]
-        read_only_fields = ["created_at", "updated_at"]

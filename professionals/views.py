@@ -35,6 +35,6 @@ class ProfessionalViewSet(viewsets.ModelViewSet):
         filters.OrderingFilter,
     ]
     filterset_fields = ["profession"]
-    search_fields = ["name", "profession", "address", "contact"]
-    ordering_fields = ["name", "profession", "created_at"]
-    ordering = ["name"]
+    search_fields = ["preferred_name", "profession", "address", "contact"]
+    ordering_fields = ["preferred_name", "profession"]
+    ordering = ["preferred_name"]
