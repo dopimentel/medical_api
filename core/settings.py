@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "django_filters",
     "professionals",
     "appointments",
+    "core",
 ]
 
 MIDDLEWARE = [
