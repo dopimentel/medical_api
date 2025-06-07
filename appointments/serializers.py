@@ -1,0 +1,53 @@
+from rest_framework import serializers
+from .models import Appointment
+from professionals.serializers import ProfessionalSerializer
+
+
+class AppointmentSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Appointment model.
+    """
+
+    professional_detail = ProfessionalSerializer(read_only=True, source="professional")
+
+    class Meta:
+        model = Appointment
+        fields = [
+            "id",
+            "date",
+            "professional",
+            "professional_detail",
+            "notes",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["created_at", "updated_at"]
+
+    def validate(self, attrs):
+        """
+        Valida se já existe consulta para este profissional neste horário
+        """
+        date = attrs.get("date")
+        professional = attrs.get("professional")
+        instance = self.instance
+
+        if date and professional:
+            # Verificar se já existe uma consulta para este profissional neste horário
+            overlapping_appointments = Appointment.objects.filter(
+                professional=professional, date=date
+            )
+
+            # Se está atualizando um objeto existente, exclua o próprio objeto da verificação
+            if instance:
+                overlapping_appointments = overlapping_appointments.exclude(
+                    id=instance.id
+                )
+
+            if overlapping_appointments.exists():
+                raise serializers.ValidationError(
+                    {
+                        "date": "Já existe uma consulta marcada para este profissional neste horário."
+                    }
+                )
+
+        return attrs
