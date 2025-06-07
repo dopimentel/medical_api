@@ -2,7 +2,6 @@
 Command for resetting the database and loading initial data.
 """
 
-import os
 import logging
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
@@ -104,43 +103,13 @@ class Command(BaseCommand):
 
     def seed_data(self):
         """Seed the database with initial data."""
-
-        # Obter dados do superusuário do .env ou usar valores padrão
-        username = os.environ.get("DJANGO_SUPERUSER_USERNAME", "admin")
-        email = os.environ.get("DJANGO_SUPERUSER_EMAIL", "admin@example.com")
-        password = os.environ.get("DJANGO_SUPERUSER_PASSWORD")
-
-        if not password:
-            self.stdout.write(
-                self.style.WARNING(
-                    "DJANGO_SUPERUSER_PASSWORD não definida no .env. "
-                    "O superusuário não será criado automaticamente."
-                )
-            )
-            return
-
-        self.stdout.write(self.style.NOTICE(f"Criando superusuário: {username}..."))
-        try:
-            # A senha do superusuário é definida pela variável de ambiente DJANGO_SUPERUSER_PASSWORD
-            # O Django usa essa variável automaticamente quando --no-input é fornecido
-            # mas apenas confirmamos que está disponível
-            if "DJANGO_SUPERUSER_PASSWORD" not in os.environ:
-                os.environ["DJANGO_SUPERUSER_PASSWORD"] = password
-
-            call_command(
-                "createsuperuser",
-                f"--username={username}",
-                f"--email={email}",
-                "--no-input",
-            )
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"Superusuário '{username}' criado com sucesso! "
-                    f"Use a senha '{password}' para login."
-                )
-            )
-        except Exception as e:
-            self.stdout.write(self.style.ERROR(f"Erro ao criar superusuário: {e}"))
+        self.stdout.write(self.style.NOTICE("Criando superusuário..."))
+        call_command(
+            "createsuperuser",
+            "--username=admin",
+            "--email=admin@example.com",
+            "--no-input",
+        )
 
         self.stdout.write(self.style.NOTICE("Criando profissionais..."))
         self.create_professionals()

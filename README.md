@@ -109,24 +109,6 @@ docker compose exec web python manage.py createsuperuser
 docker-compose exec web python manage.py createsuperuser
 ```
 
-### Configuração do Superusuário
-
-Para facilitar o acesso ao painel administrativo, você pode configurar um superusuário automático no arquivo `.env`:
-
-```bash
-# Configurações do superusuário automático
-DJANGO_SUPERUSER_USERNAME=admin
-DJANGO_SUPERUSER_EMAIL=admin@example.com
-DJANGO_SUPERUSER_PASSWORD=minhasenhasegura
-```
-
-Essas configurações são usadas em dois cenários:
-
-1. Ao resetar o banco de dados com o comando `python manage.py reset_db`
-2. Ao criar um superusuário via script `setup.sh` usando a opção "Usar valores do arquivo .env"
-
-**Nota de segurança**: Para ambientes de produção, utilize sempre senhas fortes e únicas.
-
 ## Resetando o banco de dados
 
 ### Usando Docker (Recomendado)
@@ -314,25 +296,6 @@ Instale o Poetry seguindo a [documentação oficial](https://python-poetry.org/d
 poetry cache clear --all pypi
 poetry install --no-cache
 ```
-
-## Superusuário Admin
-
-Por padrão, o projeto cria um superusuário durante o reset do banco de dados, usando as configurações do arquivo `.env`. Para personalizar o superusuário, adicione as seguintes variáveis ao seu arquivo `.env`:
-
-```
-# Configurações do superusuário automático
-DJANGO_SUPERUSER_USERNAME=admin
-DJANGO_SUPERUSER_EMAIL=admin@example.com
-DJANGO_SUPERUSER_PASSWORD=sua_senha_segura
-```
-
-Estas configurações serão usadas:
-
-1. Durante a execução do script `./reset_docker_db.sh`
-2. Quando o comando `python manage.py reset_db` for executado
-3. Durante a instalação inicial com `./setup.sh`
-
-**Nota:** Se a variável `DJANGO_SUPERUSER_PASSWORD` não estiver definida, o superusuário não será criado automaticamente.
 
 ## Estrutura do Projeto
 

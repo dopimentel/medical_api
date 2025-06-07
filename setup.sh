@@ -54,12 +54,6 @@ echo "1) Com Docker (recomendado)"
 echo "2) Localmente com Poetry"
 read -p "Escolha uma opção (1/2): " execution_option
 
-# Validar a opção escolhida
-if [ "$execution_option" != "1" ] && [ "$execution_option" != "2" ]; then
-    echo -e "${RED}Opção inválida. Por favor, escolha 1 ou 2.${NC}"
-    exit 1
-fi
-
 if [ "$execution_option" = "1" ]; then
     # Verificar se o Docker está instalado
     if ! command -v docker &> /dev/null; then
@@ -108,36 +102,8 @@ if [ "$execution_option" = "1" ]; then
     
     if [[ $create_superuser =~ ^[Yy]$ ]]; then
         echo -e "${YELLOW}Criando superusuário...${NC}"
-        # Permitir que o usuário escolha entre criar interativamente ou usar valores do .env
-        echo -e "${YELLOW}Como deseja criar o superusuário?${NC}"
-        echo "1) Interativamente (inserir dados manualmente)"
-        echo "2) Usar valores do arquivo .env"
-        read -p "Escolha uma opção (1/2): " superuser_option
-        
-        # Validar a opção escolhida
-        if [ "$superuser_option" != "1" ] && [ "$superuser_option" != "2" ]; then
-            echo -e "${RED}Opção inválida. Usando modo interativo.${NC}"
-            superuser_option="1"
-        fi
-        
-        if [ "$superuser_option" = "1" ]; then
-            echo -e "${YELLOW}Siga as instruções para definir nome de usuário, e-mail e senha:${NC}"
-            docker compose exec web python manage.py createsuperuser
-        else
-            echo -e "${YELLOW}Usando valores do arquivo .env para criar superusuário...${NC}"
-            docker compose exec web python manage.py createsuperuser --no-input
-            if [ $? -eq 0 ]; then
-                echo -e "${GREEN}Superusuário criado com as configurações do .env:${NC}"
-                echo -e "${YELLOW}Username: ${NC}$(grep DJANGO_SUPERUSER_USERNAME .env | cut -d= -f2)"
-                echo -e "${YELLOW}Email: ${NC}$(grep DJANGO_SUPERUSER_EMAIL .env | cut -d= -f2)"
-                echo -e "${YELLOW}Password: ${NC}Conforme definido em DJANGO_SUPERUSER_PASSWORD no .env"
-            else
-                echo -e "${RED}Falha ao criar superusuário com valores do .env.${NC}"
-                echo -e "${YELLOW}Tentando modo interativo...${NC}"
-                docker compose exec web python manage.py createsuperuser
-            fi
-        fi
-        
+        echo -e "${YELLOW}Siga as instruções para definir nome de usuário, e-mail e senha:${NC}"
+        docker compose exec web python manage.py createsuperuser
         echo -e "${GREEN}Superusuário criado com sucesso!${NC}"
     fi
     
@@ -194,36 +160,8 @@ else
         
         if [[ $create_superuser =~ ^[Yy]$ ]]; then
             echo -e "${YELLOW}Criando superusuário...${NC}"
-            # Permitir que o usuário escolha entre criar interativamente ou usar valores do .env
-            echo -e "${YELLOW}Como deseja criar o superusuário?${NC}"
-            echo "1) Interativamente (inserir dados manualmente)"
-            echo "2) Usar valores do arquivo .env"
-            read -p "Escolha uma opção (1/2): " superuser_option
-            
-            # Validar a opção escolhida
-            if [ "$superuser_option" != "1" ] && [ "$superuser_option" != "2" ]; then
-                echo -e "${RED}Opção inválida. Usando modo interativo.${NC}"
-                superuser_option="1"
-            fi
-            
-            if [ "$superuser_option" = "1" ]; then
-                echo -e "${YELLOW}Siga as instruções para definir nome de usuário, e-mail e senha:${NC}"
-                poetry run python manage.py createsuperuser
-            else
-                echo -e "${YELLOW}Usando valores do arquivo .env para criar superusuário...${NC}"
-                poetry run python manage.py createsuperuser --no-input
-                if [ $? -eq 0 ]; then
-                    echo -e "${GREEN}Superusuário criado com as configurações do .env:${NC}"
-                    echo -e "${YELLOW}Username: ${NC}$(grep DJANGO_SUPERUSER_USERNAME .env | cut -d= -f2)"
-                    echo -e "${YELLOW}Email: ${NC}$(grep DJANGO_SUPERUSER_EMAIL .env | cut -d= -f2)"
-                    echo -e "${YELLOW}Password: ${NC}Conforme definido em DJANGO_SUPERUSER_PASSWORD no .env"
-                else
-                    echo -e "${RED}Falha ao criar superusuário com valores do .env.${NC}"
-                    echo -e "${YELLOW}Tentando modo interativo...${NC}"
-                    poetry run python manage.py createsuperuser
-                fi
-            fi
-            
+            echo -e "${YELLOW}Siga as instruções para definir nome de usuário, e-mail e senha:${NC}"
+            poetry run python manage.py createsuperuser
             echo -e "${GREEN}Superusuário criado com sucesso!${NC}"
         fi
     fi
