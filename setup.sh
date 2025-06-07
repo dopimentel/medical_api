@@ -54,6 +54,12 @@ echo "1) Com Docker (recomendado)"
 echo "2) Localmente com Poetry"
 read -p "Escolha uma opção (1/2): " execution_option
 
+# Verificar se a opção escolhida é válida
+if [ "$execution_option" != "1" ] && [ "$execution_option" != "2" ]; then
+    echo -e "${RED}Opção inválida. Por favor, escolha 1 para Docker ou 2 para Poetry.${NC}"
+    exit 1
+fi
+
 if [ "$execution_option" = "1" ]; then
     # Verificar se o Docker está instalado
     if ! command -v docker &> /dev/null; then
