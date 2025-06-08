@@ -52,7 +52,7 @@ fi
 echo -e "${YELLOW}Como deseja executar o projeto?${NC}"
 echo "1) Com Docker (recomendado)"
 echo "2) Localmente com Poetry"
-read -p "Escolha uma opção (1/2): " execution_option
+read -p "Escolha uma opção (1 ou 2): " execution_option
 
 # Verificar se a opção escolhida é válida
 if [ "$execution_option" != "1" ] && [ "$execution_option" != "2" ]; then
@@ -129,7 +129,17 @@ else
     
     # Configurar banco de dados local - aviso sobre Docker
     echo -e "${YELLOW}ATENÇÃO: O projeto está configurado para usar PostgreSQL em Docker.${NC}"
-    echo -e "${YELLOW}Certifique-se de ajustar as configurações em .env para seu banco local.${NC}"
+    
+    if [ "$SKIP_CONFIRM" = false ]; then
+        echo -e "${YELLOW}Você já configurou o arquivo .env para seu banco local e reiniciou o terminal? [y/N]${NC}"
+        read env_configured
+        
+        if [[ ! $env_configured =~ ^[Yy]$ ]]; then
+            echo -e "${RED}Por favor, configure o arquivo .env e reinicie o terminal antes de continuar.${NC}"
+            echo -e "${YELLOW}Para editar o arquivo: ${NC}nano .env"
+            exit 1
+        fi
+    fi
     
     # Perguntar se deseja aplicar migrações
     if [ "$SKIP_CONFIRM" = false ]; then
