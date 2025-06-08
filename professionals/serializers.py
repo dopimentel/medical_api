@@ -16,3 +16,13 @@ class ProfessionalSerializer(serializers.ModelSerializer):
             "address",
             "contact",
         ]
+        
+    def validate_contact(self, value):
+        """
+        Validação adicional para o campo contact.
+        """
+        if not value.isdigit() or len(value) != 11:
+            raise serializers.ValidationError(
+                "O contato deve ser um número telefônico com 11 dígitos."
+            )
+        return value

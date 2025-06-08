@@ -124,31 +124,31 @@ class Command(BaseCommand):
                 "preferred_name": "Dra. Ana Silva",
                 "profession": "Cardiologista",
                 "address": "Av. Paulista, 1000, São Paulo - SP",
-                "contact": "+55 11 99999-1111",
+                "contact": "11999991111",
             },
             {
                 "preferred_name": "Dr. Carlos Oliveira",
                 "profession": "Dermatologista",
                 "address": "Rua Augusta, 500, São Paulo - SP",
-                "contact": "+55 11 99999-2222",
+                "contact": "11999992222",
             },
             {
                 "preferred_name": "Dra. Mariana Souza",
                 "profession": "Neurologista",
                 "address": "Av. Brasil, 300, Rio de Janeiro - RJ",
-                "contact": "+55 21 99999-3333",
+                "contact": "21999993333",
             },
             {
                 "preferred_name": "Dr. João Castro",
                 "profession": "Oftalmologista",
                 "address": "Rua das Flores, 200, Belo Horizonte - MG",
-                "contact": "+55 31 99999-4444",
+                "contact": "31999994444",
             },
             {
                 "preferred_name": "Dra. Fernanda Lima",
                 "profession": "Psiquiatra",
                 "address": "Av. Atlântica, 800, Rio de Janeiro - RJ",
-                "contact": "+55 21 99999-5555",
+                "contact": "21999995555",
             },
         ]
 
