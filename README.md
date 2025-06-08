@@ -206,7 +206,7 @@ A documentação da API está disponível em:
 | PUT | `/api/appointments/{id}/` | Atualiza completamente uma consulta |
 | PATCH | `/api/appointments/{id}/` | Atualiza parcialmente uma consulta |
 | DELETE | `/api/appointments/{id}/` | Remove uma consulta do sistema |
-| GET | `/api/appointments/professional/{professional_id}/` | Busca todas as consultas de um profissional específico por ID |
+| GET | `/api/appointments/?professional={professional_id}/` | Busca todas as consultas de um profissional específico por ID |
 
 **Exemplo de JSON para cadastro de consulta:**
 
