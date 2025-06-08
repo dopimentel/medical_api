@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from decouple import config
+import sys
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -90,6 +91,13 @@ DATABASES = {
         "PORT": config("DB_PORT", cast=int),
     }
 }
+
+# Use SQLite for testing to avoid database connection issues
+if 'test' in sys.argv or 'pytest' in sys.modules:
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:'
+    }
 
 
 # Password validation

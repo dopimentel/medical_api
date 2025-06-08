@@ -18,10 +18,6 @@ DATABASES = {
     }
 }
 
-# Development tools
-INSTALLED_APPS += [
-    "django.contrib.staticfiles",
-]
 
 # Logging
 LOGGING = {
