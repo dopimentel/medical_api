@@ -167,6 +167,64 @@ A documentação da API está disponível em:
 - `/api/redoc/` - Interface ReDoc
 - `/api/schema/` - Schema OpenAPI
 
+## Endpoints da API
+
+### Endpoints para Profissionais da Saúde
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/api/professionals/` | Lista todos os profissionais da saúde |
+| POST | `/api/professionals/` | Cadastra um novo profissional da saúde |
+| GET | `/api/professionals/{id}/` | Recupera os detalhes de um profissional específico |
+| PUT | `/api/professionals/{id}/` | Atualiza completamente um profissional |
+| PATCH | `/api/professionals/{id}/` | Atualiza parcialmente um profissional |
+| DELETE | `/api/professionals/{id}/` | Remove um profissional do sistema |
+
+**Exemplo de JSON para cadastro de profissional:**
+
+```json
+{
+  "preferred_name": "Dr. Ana Silva",
+  "profession": "Cardiologista",
+  "address": "Av. Paulista, 1000 - São Paulo/SP",
+  "contact": "ana.silva@email.com / (11) 98765-4321"
+}
+```
+
+**Parâmetros de filtro:**
+
+- `?search=termo` - Busca pelo nome ou profissão
+- `?ordering=field` - Ordenação por campo (ex: preferred_name, -created_at para ordem decrescente)
+
+### Endpoints para Consultas Médicas
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/api/appointments/` | Lista todas as consultas médicas |
+| POST | `/api/appointments/` | Cadastra uma nova consulta médica |
+| GET | `/api/appointments/{id}/` | Recupera os detalhes de uma consulta específica |
+| PUT | `/api/appointments/{id}/` | Atualiza completamente uma consulta |
+| PATCH | `/api/appointments/{id}/` | Atualiza parcialmente uma consulta |
+| DELETE | `/api/appointments/{id}/` | Remove uma consulta do sistema |
+| GET | `/api/appointments/professional/{professional_id}/` | Busca todas as consultas de um profissional específico por ID |
+
+**Exemplo de JSON para cadastro de consulta:**
+
+```json
+{
+  "date": "2025-06-15T14:30:00Z",
+  "professional": 1
+}
+```
+
+**Parâmetros de filtro:**
+
+- `?professional=1` - Filtra por ID do profissional
+- `?date=2025-06-15T14:30:00Z` - Filtra por data exata
+- `?date_start=2025-06-01T00:00:00Z` - Filtra por data maior ou igual
+- `?date_end=2025-06-30T23:59:59Z` - Filtra por data menor ou igual
+- `?ordering=date` - Ordenação por data (use -date para ordem decrescente)
+
 ## Estrutura dos dados
 
 ### Profissionais
