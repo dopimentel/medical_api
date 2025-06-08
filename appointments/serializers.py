@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import Appointment
-from professionals.serializers import ProfessionalSerializer
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
@@ -8,15 +7,12 @@ class AppointmentSerializer(serializers.ModelSerializer):
     Serializer for Appointment model.
     """
 
-    professional_detail = ProfessionalSerializer(read_only=True, source="professional")
-
     class Meta:
         model = Appointment
         fields = [
             "id",
             "date",
             "professional",
-            "professional_detail",
         ]
 
     def validate(self, attrs):
@@ -30,10 +26,11 @@ class AppointmentSerializer(serializers.ModelSerializer):
         if date and professional:
             # Verificar se já existe uma consulta para este profissional neste horário
             overlapping_appointments = Appointment.objects.filter(
-                professional=professional, date=date
+                professional=professional,
+                date=date
             )
 
-            # Se está atualizando um objeto existente, exclua o próprio objeto da verificação
+            # Se está atualizando um objeto existente, exclua o próprio objeto
             if instance:
                 overlapping_appointments = overlapping_appointments.exclude(
                     id=instance.id
@@ -41,6 +38,8 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
             if overlapping_appointments.exists():
                 msg = "Já existe uma consulta marcada para este profissional neste horário."
-                raise serializers.ValidationError({"date": msg})
+                raise serializers.ValidationError(
+                    {"date": msg}
+                )
 
         return attrs

@@ -16,7 +16,7 @@ class AppointmentFilterSet(FilterSet):
     class Meta:
         model = Appointment
         fields = {
-            "professional__id": ["exact"],
+            "professional": ["exact"],
             "date": ["exact"],
         }
 
