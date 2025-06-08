@@ -77,10 +77,6 @@ if [ "$execution_option" = "1" ]; then
     echo -e "${YELLOW}Iniciando containers Docker...${NC}"
     docker compose up -d
     
-    # Esperar um momento para o banco de dados inicializar
-    echo -e "${YELLOW}Aguardando o banco de dados inicializar...${NC}"
-    sleep 5
-    
     # Verificar se os containers estão rodando
     # O Docker Compose V2 usa formato de nome diferente
     if ! docker ps | grep -q "medical_api-web" && ! docker ps | grep -q "_web"; then
