@@ -1,5 +1,6 @@
 # Python
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -37,6 +38,7 @@ docker-compose.override.yml
 venv/
 ENV/
 env/
+.env
 .env.local
 .env.development.local
 .env.test.local
@@ -81,3 +83,5 @@ Desktop.ini
 
 # Poetry
 poetry.toml
+core/__pycache__/settings.cpython-312.pyc
+core/__pycache__/settings.cpython-312.pyc

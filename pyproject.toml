@@ -1,21 +1,20 @@
-[project]
+[tool.poetry]
 name = "medical-api"
 version = "0.1.0"
-description = ""
-authors = [
-    {name = "Marcos Pimentel",email = "106275499+dopimentel@users.noreply.github.com"}
-]
+description = "API RESTful para gerenciamento de profissionais da saúde e consultas médicas"
+authors = ["Marcos Pimentel <106275499+dopimentel@users.noreply.github.com>"]
 readme = "README.md"
-requires-python = "^3.12"
-dependencies = [
-    "django (>=5.2.2,<6.0.0)",
-    "djangorestframework (>=3.16.0,<4.0.0)",
-    "psycopg2-binary (>=2.9.10,<3.0.0)",
-    "python-decouple (>=3.8,<4.0)",
-    "drf-spectacular (>=0.28.0,<0.29.0)",
-    "django-filter (>=25.1,<26.0)",
-    "markdown (>=3.8,<4.0)"
-]
+packages = [{include = "core"}, {include = "professionals"}, {include = "appointments"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+django = ">=5.2.2,<6.0.0"
+djangorestframework = ">=3.16.0,<4.0.0"
+psycopg2-binary = ">=2.9.10,<3.0.0"
+python-decouple = ">=3.8,<4.0"
+drf-spectacular = ">=0.28.0,<0.29.0"
+django-filter = ">=25.1,<26.0"
+markdown = ">=3.8,<4.0"
 
 
 [build-system]
@@ -25,4 +24,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.0"
 pytest-django = "^4.11.1"
-
+pytest-cov = "^6.0.0"
+factory-boy = "^3.3.0"
+faker = "^33.0.0"
+django-debug-toolbar = "^4.4.6"

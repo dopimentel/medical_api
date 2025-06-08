@@ -1,3 +1,45 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+from professionals.models import Professional
 
-# Create your models here.
+
+class Appointment(models.Model):
+    """
+    Model representing medical appointments.
+    """
+
+    date = models.DateTimeField("Data da Consulta")
+    professional = models.ForeignKey(
+        Professional,
+        on_delete=models.CASCADE,
+        related_name="appointments",
+        verbose_name="Profissional",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Consulta"
+        verbose_name_plural = "Consultas"
+        ordering = ["-date"]
+
+    def __str__(self):
+        nome = self.professional.preferred_name
+        data = self.date.strftime("%d/%m/%Y %H:%M")
+        return f"Consulta com {nome} em {data}"
+
+    def clean(self):
+        """Valida se já existe consulta para este profissional neste horário"""
+        if self.date and self.professional:
+            # Verificar se já existe uma consulta para este profissional neste horário
+            overlapping_appointments = Appointment.objects.filter(
+                professional=self.professional, date=self.date
+            ).exclude(id=self.id)
+
+            if overlapping_appointments.exists():
+                raise ValidationError(
+                    {
+                        "date": "Já existe uma consulta marcada para este profissional "
+                        "neste horário."
+                    }
+                )
