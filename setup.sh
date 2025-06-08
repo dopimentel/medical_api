@@ -37,11 +37,6 @@ if [ ! -f .env ]; then
     if [ -f .env.example ]; then
         cp .env.example .env
         echo -e "${GREEN}Arquivo .env criado com sucesso!${NC}"
-        echo -e "${YELLOW}Edite o arquivo .env com suas configurações antes de continuar.${NC}"
-        if [ "$SKIP_CONFIRM" = false ]; then
-            echo "Pressione Enter para continuar ou Ctrl+C para cancelar..."
-            read
-        fi
     else
         echo -e "${RED}Arquivo .env.example não encontrado. Não foi possível criar o .env.${NC}"
         exit 1
@@ -86,8 +81,15 @@ if [ "$execution_option" = "1" ]; then
     fi
     
     echo -e "${GREEN}Containers Docker iniciados com sucesso!${NC}"
+    
+    # Aplicar migrações automaticamente
+    echo -e "${YELLOW}Aplicando migrações ao banco de dados...${NC}"
+    docker compose exec web python manage.py makemigrations
+    docker compose exec web python manage.py migrate
+    echo -e "${GREEN}Migrações aplicadas com sucesso!${NC}"
+    
     if [ "$SKIP_CONFIRM" = false ]; then
-        echo -e "${YELLOW}Deseja resetar o banco de dados? [y/N]${NC}"
+        echo -e "${YELLOW}Deseja resetar o banco de dados e criar dados iniciais (seeders)? [y/N]${NC}"
         read reset_db
     fi
     
