@@ -691,3 +691,19 @@ Vá para http://localhost:8000/admin/ e faça login com:
 - [ ] Integração com calendários
 - [ ] Backup automático
 - [ ] Métricas e monitoramento
+
+# Proposta de Integração para Split de Pagamento com Asaas
+
+Esta proposta descreve o fluxo técnico para integrar a API com o sistema de pagamentos Asaas, atendendo ao requisito de *split de pagamento* entre os profissionais da saúde e a plataforma Lacrei Saúde.
+
+### Objetivo
+Automatizar a cobrança de consultas e a divisão dos valores recebidos, garantindo que cada parte (profissional e plataforma) receba sua parcela correta de forma transparente e segura.
+
+### Requisitos de Dados
+Para viabilizar a integração, o modelo `Professional` deverá ser estendido para armazenar o ID da carteira digital Asaas de cada profissional:
+
+```python
+# professionals/models.py
+class Professional(models.Model):
+    # ... outros campos
+    asaas_wallet_id = models.CharField("ID da Carteira Asaas", max_length=255, blank=True, null=True)
