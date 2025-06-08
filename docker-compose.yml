@@ -27,6 +27,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    environment:
+      DJANGO_SETTINGS_MODULE: core.settings.development
 
 volumes:
   pg-data:
