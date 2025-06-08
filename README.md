@@ -694,1347 +694,216 @@ Vá para http://localhost:8000/admin/ e faça login com:
 
 # 💳 Integração com Asaas - Proposta de Implementação Robusta
 
-Este documento detalha a arquitetura proposta para integrar a plataforma com o sistema de pagamentos [Asaas](https://www.asaas.com/), implementando um sistema robusto de split de pagamentos entre profissionais da saúde e a plataforma.
+Esta proposta apresenta uma visão conceitual da integração com o sistema de pagamentos [Asaas](https://www.asaas.com/) para automatizar o processo de cobrança de consultas médicas com split de pagamentos entre profissionais e plataforma.
 
 ---
 
-## 🎯 Visão Geral
-
-A integração proposta visa automatizar completamente o processo de cobrança de consultas médicas, implementando um sistema de split de pagamento que garante:
-
-- **Transparência**: Divisão clara de valores entre profissional e plataforma
-- **Segurança**: Validação robusta de pagamentos e transações
-- **Escalabilidade**: Arquitetura preparada para alto volume de transações
-- **Confiabilidade**: Sistema tolerante a falhas com retry automático
-- **Rastreabilidade**: Log completo de todas as operações financeiras
-
-### Benefícios da Implementação
-
-✅ **Automatização completa** do processo de cobrança  
-✅ **Redução de custos** operacionais  
-✅ **Experiência do usuário** aprimorada  
-✅ **Compliance** com regulamentações financeiras  
-✅ **Escalabilidade** para crescimento da plataforma  
-✅ **Monitoramento** em tempo real dos pagamentos
-
----
-
-## 📌 Objetivos Específicos
+## 🎯 Objetivos Estratégicos
 
 ### Objetivo Principal
-Automatizar o processo de cobrança de consultas e implementar o repasse proporcional de valores entre os profissionais e a plataforma de forma transparente, segura e rastreável.
+Implementar um sistema automatizado de pagamentos que divida valores de forma transparente entre profissionais da saúde e a plataforma, garantindo:
 
-### Objetivos Secundários
-- **Reduzir a carga operacional** de processamento manual de pagamentos
-- **Garantir conformidade** com regulamentações do setor financeiro
-- **Implementar auditoria completa** de todas as transações
-- **Otimizar o fluxo de caixa** com liquidação automática
-- **Minimizar disputas** através de transparência nos repasses
+- **Automatização completa** do fluxo de cobrança
+- **Transparência financeira** em todas as transações
+- **Escalabilidade** para crescimento da plataforma
+- **Compliance** com regulamentações do setor
+
+### Benefícios Esperados
+✅ **Redução de custos operacionais** com processamento manual  
+✅ **Melhoria na experiência** de usuários e profissionais  
+✅ **Aumento na conversão** de consultas agendadas  
+✅ **Rastreabilidade completa** de transações financeiras  
+✅ **Preparação para escala** e novos mercados
 
 ---
 
-## 🏛️ Arquitetura e Princípios de Design
+## 🏗️ Arquitetura Conceitual
 
-A integração será baseada em cinco pilares fundamentais para garantir a resiliência e escalabilidade do sistema:
+### Pilares da Solução
 
-### 1. **Separação de Responsabilidades (SRP)**
-- A lógica de comunicação com a API da Asaas será encapsulada em uma camada de serviço dedicada
-- Novo app `payments` responsável exclusivamente pela integração financeira
-- Isolamento claro entre regras de negócio e integração externa
+#### 1. **Processamento Assíncrono**
+- Operações financeiras executadas em background
+- Interface responsiva durante processamento
+- Sistema de retry automático para falhas temporárias
 
-### 2. **Processamento Assíncrono**
-- Chamadas para APIs externas executadas em background via Celery
-- Interface do usuário permanece responsiva durante processamento
-- Sistema de retry automático com backoff exponencial
-- Monitoramento de performance das tarefas assíncronas
+#### 2. **Split de Pagamento Automatizado**
+- Divisão configurável entre profissional e plataforma
+- Cálculo automático de taxas e impostos
+- Liquidação instantânea via Asaas
 
-### 3. **Consistência e Atomicidade**
-- Uso de sinais do Django para automação de processos
-- Transações atômicas garantem integridade dos dados
-- Padrão Saga para operações distribuídas
-- Idempotência em todas as operações críticas
-
-### 4. **Observabilidade e Monitoramento**
-- Logs estruturados para auditoria completa
-- Métricas de performance e disponibilidade
-- Alertas para falhas críticas
-- Dashboard de monitoramento financeiro
-
-### 5. **Segurança por Design**
+#### 3. **Segurança e Auditoria**
 - Validação rigorosa de webhooks
-- Criptografia de dados sensíveis
-- Controle de acesso baseado em roles
-- Auditoria de todas as operações financeiras
+- Log completo de todas as operações
+- Controle de acesso baseado em perfis
+
+#### 4. **Monitoramento e Observabilidade**
+- Métricas em tempo real de pagamentos
+- Alertas para falhas críticas
+- Dashboard administrativo completo
 
 ---
 
-## 💰 Modelo de Split de Pagamento
+## 💰 Modelo de Negócio
 
-### Configuração de Repasse
-```python
-# Exemplo de configuração flexível
-SPLIT_CONFIG = {
-    'platform_percentage': 15.0,  # 15% para a plataforma
-    'professional_percentage': 85.0,  # 85% para o profissional
-    'minimum_split_amount': 10.00,  # Valor mínimo para split
-    'platform_wallet_id': 'wallet_platform_123'
-}
+### Configuração de Split
+```
+Consulta: R$ 100,00
+├── Profissional: R$ 85,00 (85%)
+└── Plataforma: R$ 15,00 (15%)
 ```
 
-### Cálculo Automático
-- **Taxa da plataforma**: Configurável por categoria de profissional
-- **Repasse profissional**: Valor líquido após taxas
-- **Taxas Asaas**: Descontadas automaticamente
-- **Impostos**: Calculados conforme legislação vigente
+### Fluxo Financeiro
+1. **Agendamento**: Cliente agenda consulta com valor definido
+2. **Cobrança**: Sistema gera cobrança automática via Asaas
+3. **Pagamento**: Cliente efetua pagamento (PIX, cartão, boleto)
+4. **Split**: Valor é dividido automaticamente
+5. **Liquidação**: Cada parte recebe sua parcela instantaneamente
 
 ---
 
-## 🧩 Componentes da Integração
-
-## 🧩 Componentes da Integração
-
-### 1. Modelos de Dados Estendidos
-
-Para suportar a integração completa, os modelos serão estendidos com campos específicos para rastreamento e controle:
-
-**`professionals/models.py`**
-```python
-class Professional(models.Model):
-    # ... campos existentes ...
-    
-    # Dados de integração Asaas
-    email = models.EmailField(unique=True)  # Obrigatório para Asaas
-    phone = models.CharField(max_length=15, blank=True)  # Para notificações
-    asaas_customer_id = models.CharField(
-        "ID de Cliente Asaas", 
-        max_length=255, 
-        blank=True, 
-        null=True, 
-        unique=True,
-        db_index=True
-    )
-    asaas_wallet_id = models.CharField(
-        "ID da Carteira Asaas", 
-        max_length=255, 
-        blank=True, 
-        null=True,
-        db_index=True
-    )
-    
-    # Configurações de split
-    split_percentage = models.DecimalField(
-        "Percentual do Profissional",
-        max_digits=5,
-        decimal_places=2,
-        default=85.00,
-        help_text="Percentual que o profissional recebe (ex: 85.00 para 85%)"
-    )
-    
-    # Status da integração
-    integration_status = models.CharField(
-        max_length=20,
-        choices=[
-            ('PENDING', 'Integração Pendente'),
-            ('ACTIVE', 'Integração Ativa'),
-            ('ERROR', 'Erro na Integração'),
-            ('SUSPENDED', 'Integração Suspensa'),
-        ],
-        default='PENDING'
-    )
-    integration_error = models.TextField(blank=True, help_text="Último erro de integração")
-    
-    # Timestamps
-    asaas_created_at = models.DateTimeField(null=True, blank=True)
-    asaas_updated_at = models.DateTimeField(null=True, blank=True)
-```
-
-**`appointments/models.py`**
-```python
-class Appointment(models.Model):
-    # ... campos existentes ...
-    
-    # Status do pagamento
-    STATUS_CHOICES = [
-        ('PENDING', 'Aguardando Pagamento'),
-        ('PROCESSING', 'Processando Pagamento'),
-        ('PAID', 'Pago'),
-        ('CANCELED', 'Cancelado'),
-        ('REFUNDED', 'Reembolsado'),
-        ('FAILED', 'Falha no Pagamento'),
-    ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
-    
-    # Dados financeiros
-    total_amount = models.DecimalField(
-        "Valor Total",
-        max_digits=10,
-        decimal_places=2,
-        help_text="Valor total da consulta"
-    )
-    platform_amount = models.DecimalField(
-        "Valor da Plataforma",
-        max_digits=10,
-        decimal_places=2,
-        null=True,
-        blank=True
-    )
-    professional_amount = models.DecimalField(
-        "Valor do Profissional",
-        max_digits=10,
-        decimal_places=2,
-        null=True,
-        blank=True
-    )
-    
-    # Integração Asaas
-    asaas_payment_id = models.CharField(
-        "ID do Pagamento Asaas",
-        max_length=255,
-        blank=True,
-        null=True,
-        unique=True,
-        db_index=True
-    )
-    asaas_invoice_url = models.URLField(blank=True, help_text="URL da fatura Asaas")
-    
-    # Metadados do pagamento
-    payment_method = models.CharField(
-        max_length=20,
-        choices=[
-            ('BOLETO', 'Boleto Bancário'),
-            ('CREDIT_CARD', 'Cartão de Crédito'),
-            ('DEBIT_CARD', 'Cartão de Débito'),
-            ('PIX', 'PIX'),
-            ('BANK_SLIP', 'Transferência Bancária'),
-        ],
-        blank=True
-    )
-    due_date = models.DateField(null=True, blank=True, help_text="Data de vencimento")
-    paid_at = models.DateTimeField(null=True, blank=True)
-    
-    # Auditoria
-    payment_attempts = models.PositiveIntegerField(default=0)
-    last_payment_error = models.TextField(blank=True)
-    
-    class Meta:
-        # ... meta existente ...
-        indexes = [
-            models.Index(fields=['status', 'created_at']),
-            models.Index(fields=['asaas_payment_id']),
-        ]
-```
-
-**`payments/models.py`** (Novo modelo)
-```python
-class PaymentTransaction(models.Model):
-    """Modelo para rastreamento completo de transações"""
-    
-    TRANSACTION_TYPES = [
-        ('CHARGE', 'Cobrança'),
-        ('SPLIT', 'Divisão de Pagamento'),
-        ('REFUND', 'Reembolso'),
-        ('CHARGEBACK', 'Chargeback'),
-    ]
-    
-    STATUS_CHOICES = [
-        ('PENDING', 'Pendente'),
-        ('PROCESSING', 'Processando'),
-        ('COMPLETED', 'Concluída'),
-        ('FAILED', 'Falhou'),
-        ('CANCELED', 'Cancelada'),
-    ]
-    
-    # Relacionamentos
-    appointment = models.ForeignKey('appointments.Appointment', on_delete=models.PROTECT)
-    professional = models.ForeignKey('professionals.Professional', on_delete=models.PROTECT)
-    
-    # Dados da transação
-    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    
-    # IDs externos
-    asaas_transaction_id = models.CharField(max_length=255, unique=True, db_index=True)
-    asaas_charge_id = models.CharField(max_length=255, blank=True)
-    
-    # Metadados
-    request_data = models.JSONField(default=dict, help_text="Dados enviados para Asaas")
-    response_data = models.JSONField(default=dict, help_text="Resposta da Asaas")
-    error_details = models.TextField(blank=True)
-    
-    # Timestamps
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    processed_at = models.DateTimeField(null=True, blank=True)
-    
-    class Meta:
-        ordering = ['-created_at']
-        indexes = [
-            models.Index(fields=['status', 'created_at']),
-            models.Index(fields=['asaas_transaction_id']),
-            models.Index(fields=['appointment', 'transaction_type']),
-        ]
-```
-### 2. Camada de Serviços Asaas
-
-**`payments/services/asaas_service.py`**
-```python
-import requests
-import logging
-from typing import Optional, Dict, Any
-from django.conf import settings
-from django.core.cache import cache
-from .exceptions import AsaasAPIException, AsaasTimeoutException
-
-logger = logging.getLogger('payments.asaas')
-
-class AsaasService:
-    """Serviço para integração com API da Asaas"""
-    
-    def __init__(self):
-        self.base_url = settings.ASAAS_API_URL
-        self.api_key = settings.ASAAS_API_KEY
-        self.timeout = 30
-        
-    def _make_request(self, method: str, endpoint: str, data: Optional[Dict] = None, 
-                     retry_count: int = 0) -> Dict[str, Any]:
-        """Executa requisição para API da Asaas com retry e logging"""
-        
-        url = f"{self.base_url}/{endpoint}"
-        headers = {
-            'access_token': self.api_key,
-            'Content-Type': 'application/json',
-            'User-Agent': 'MedicalAPI/1.0'
-        }
-        
-        try:
-            logger.info(f"Asaas API Request: {method} {endpoint}", extra={
-                'method': method,
-                'endpoint': endpoint,
-                'data': data,
-                'retry_count': retry_count
-            })
-            
-            response = requests.request(
-                method=method,
-                url=url,
-                json=data,
-                headers=headers,
-                timeout=self.timeout
-            )
-            
-            # Log da resposta
-            logger.info(f"Asaas API Response: {response.status_code}", extra={
-                'status_code': response.status_code,
-                'response_data': response.json() if response.content else None
-            })
-            
-            response.raise_for_status()
-            return response.json()
-            
-        except requests.exceptions.Timeout:
-            raise AsaasTimeoutException(f"Timeout na requisição para {endpoint}")
-        except requests.exceptions.RequestException as e:
-            if retry_count < 2:  # Máximo 3 tentativas
-                logger.warning(f"Erro na requisição Asaas, tentativa {retry_count + 1}: {e}")
-                return self._make_request(method, endpoint, data, retry_count + 1)
-            else:
-                logger.error(f"Falha definitiva na requisição Asaas: {e}")
-                raise AsaasAPIException(f"Erro na API Asaas: {e}")
-    
-    def create_customer(self, name: str, email: str, phone: str = None, 
-                       cpf_cnpj: str = None) -> Dict[str, Any]:
-        """Cria um cliente na Asaas"""
-        
-        data = {
-            'name': name,
-            'email': email
-        }
-        
-        if phone:
-            data['phone'] = phone
-        if cpf_cnpj:
-            data['cpfCnpj'] = cpf_cnpj
-            
-        return self._make_request('POST', 'customers', data)
-    
-    def create_charge_with_split(self, customer_id: str, total_value: float,
-                               professional_wallet_id: str, platform_percentage: float = 15.0,
-                               due_date: str = None, description: str = None) -> Dict[str, Any]:
-        """Cria cobrança com split de pagamento"""
-        
-        platform_amount = round(total_value * (platform_percentage / 100), 2)
-        professional_amount = round(total_value - platform_amount, 2)
-        
-        data = {
-            'customer': customer_id,
-            'billingType': 'BOLETO',  # Configurável
-            'value': total_value,
-            'dueDate': due_date,
-            'description': description or f'Consulta médica - Valor: R$ {total_value}',
-            'split': [
-                {
-                    'walletId': professional_wallet_id,
-                    'fixedValue': professional_amount,
-                    'description': f'Repasse profissional - {100 - platform_percentage}%'
-                }
-            ],
-            'callback': {
-                'successUrl': f"{settings.FRONTEND_URL}/payment/success",
-                'autoRedirect': True
-            },
-            'discount': {
-                'value': 0,
-                'dueDateLimitDays': 0
-            },
-            'fine': {
-                'value': 2.0
-            },
-            'interest': {
-                'value': 1.0
-            }
-        }
-        
-        return self._make_request('POST', 'payments', data)
-    
-    def get_payment_status(self, payment_id: str) -> Dict[str, Any]:
-        """Consulta status de um pagamento"""
-        return self._make_request('GET', f'payments/{payment_id}')
-    
-    def cancel_payment(self, payment_id: str) -> Dict[str, Any]:
-        """Cancela um pagamento"""
-        return self._make_request('DELETE', f'payments/{payment_id}')
-    
-    def refund_payment(self, payment_id: str, amount: float = None) -> Dict[str, Any]:
-        """Processa reembolso"""
-        data = {}
-        if amount:
-            data['value'] = amount
-            
-        return self._make_request('POST', f'payments/{payment_id}/refund', data)
-```
-
-**`payments/services/exceptions.py`**
-```python
-class AsaasException(Exception):
-    """Exceção base para erros da Asaas"""
-    pass
-
-class AsaasAPIException(AsaasException):
-    """Erro na API da Asaas"""
-    pass
-
-class AsaasTimeoutException(AsaasException):
-    """Timeout na comunicação com Asaas"""
-    pass
-
-class AsaasValidationException(AsaasException):
-    """Erro de validação nos dados enviados"""
-    pass
-```
-### 3. Automação com Sinais do Django
-
-**`professionals/signals.py`**
-```python
-import logging
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.db import transaction
-from .models import Professional
-from payments.services.asaas_service import AsaasService
-from payments.tasks import create_asaas_customer_task
-
-logger = logging.getLogger('professionals.signals')
-
-@receiver(post_save, sender=Professional)
-def handle_professional_creation(sender, instance, created, **kwargs):
-    """
-    Sinal para automatizar criação de cliente Asaas quando profissional é cadastrado
-    """
-    if created and not instance.asaas_customer_id:
-        logger.info(f"Novo profissional criado: {instance.preferred_name} (ID: {instance.id})")
-        
-        # Agenda tarefa assíncrona para criação na Asaas
-        transaction.on_commit(
-            lambda: create_asaas_customer_task.delay(instance.id)
-        )
-
-@receiver(post_save, sender=Professional)
-def handle_professional_update(sender, instance, created, **kwargs):
-    """
-    Sinal para sincronizar alterações do profissional com Asaas
-    """
-    if not created and instance.asaas_customer_id:
-        # Verifica se campos relevantes foram alterados
-        relevant_fields = ['preferred_name', 'email', 'phone']
-        
-        if any(field in kwargs.get('update_fields', []) for field in relevant_fields):
-            logger.info(f"Profissional atualizado: {instance.preferred_name} (ID: {instance.id})")
-            
-            # Agenda sincronização com Asaas
-            transaction.on_commit(
-                lambda: sync_professional_with_asaas_task.delay(instance.id)
-            )
-```
-### 4. Tarefas Assíncronas com Celery
-
-**`payments/tasks.py`**
-```python
-import logging
-from celery import shared_task
-from celery.exceptions import Retry
-from django.db import transaction
-from django.utils import timezone
-from .services.asaas_service import AsaasService, AsaasAPIException
-from .models import PaymentTransaction
-from appointments.models import Appointment
-from professionals.models import Professional
-
-logger = logging.getLogger('payments.tasks')
-
-@shared_task(bind=True, max_retries=5, default_retry_delay=60)
-def create_asaas_customer_task(self, professional_id):
-    """Cria cliente na Asaas para um profissional"""
-    
-    try:
-        professional = Professional.objects.get(id=professional_id)
-        
-        if professional.asaas_customer_id:
-            logger.info(f"Profissional {professional_id} já possui customer_id")
-            return {'status': 'already_exists', 'customer_id': professional.asaas_customer_id}
-        
-        asaas_service = AsaasService()
-        
-        # Cria cliente na Asaas
-        customer_data = asaas_service.create_customer(
-            name=professional.preferred_name,
-            email=professional.email,
-            phone=getattr(professional, 'phone', None)
-        )
-        
-        # Atualiza profissional com dados da Asaas
-        with transaction.atomic():
-            professional.asaas_customer_id = customer_data.get('id')
-            professional.integration_status = 'ACTIVE'
-            professional.asaas_created_at = timezone.now()
-            professional.integration_error = ''
-            professional.save(update_fields=[
-                'asaas_customer_id', 'integration_status', 
-                'asaas_created_at', 'integration_error'
-            ])
-        
-        logger.info(f"Cliente Asaas criado para profissional {professional_id}: {customer_data.get('id')}")
-        
-        return {
-            'status': 'created',
-            'customer_id': customer_data.get('id'),
-            'professional_id': professional_id
-        }
-        
-    except Professional.DoesNotExist:
-        logger.error(f"Profissional {professional_id} não encontrado")
-        return {'status': 'error', 'message': 'Professional not found'}
-        
-    except AsaasAPIException as exc:
-        logger.error(f"Erro API Asaas ao criar cliente para profissional {professional_id}: {exc}")
-        
-        # Atualiza status de erro
-        try:
-            professional = Professional.objects.get(id=professional_id)
-            professional.integration_status = 'ERROR'
-            professional.integration_error = str(exc)
-            professional.save(update_fields=['integration_status', 'integration_error'])
-        except Professional.DoesNotExist:
-            pass
-        
-        # Retry com backoff exponencial
-        raise self.retry(exc=exc, countdown=60 * (2 ** self.request.retries))
-
-@shared_task(bind=True, max_retries=3, default_retry_delay=30)
-def create_asaas_charge_task(self, appointment_id, total_value, due_date=None):
-    """Cria cobrança na Asaas com split de pagamento"""
-    
-    try:
-        appointment = Appointment.objects.select_related('professional').get(id=appointment_id)
-        
-        if appointment.asaas_payment_id:
-            logger.warning(f"Consulta {appointment_id} já possui payment_id")
-            return {'status': 'already_exists', 'payment_id': appointment.asaas_payment_id}
-        
-        if not appointment.professional.asaas_customer_id:
-            logger.error(f"Profissional {appointment.professional.id} não possui customer_id")
-            raise Exception("Professional não possui integração com Asaas")
-        
-        asaas_service = AsaasService()
-        
-        # Calcula split baseado na configuração do profissional
-        platform_percentage = 100 - float(appointment.professional.split_percentage)
-        
-        # Cria transação de cobrança
-        with transaction.atomic():
-            payment_transaction = PaymentTransaction.objects.create(
-                appointment=appointment,
-                professional=appointment.professional,
-                transaction_type='CHARGE',
-                status='PROCESSING',
-                amount=total_value,
-                request_data={
-                    'total_value': total_value,
-                    'platform_percentage': platform_percentage,
-                    'due_date': due_date
-                }
-            )
-            
-            # Cria cobrança na Asaas
-            charge_data = asaas_service.create_charge_with_split(
-                customer_id=appointment.professional.asaas_customer_id,
-                total_value=float(total_value),
-                professional_wallet_id=appointment.professional.asaas_wallet_id,
-                platform_percentage=platform_percentage,
-                due_date=due_date,
-                description=f"Consulta médica - {appointment.professional.preferred_name}"
-            )
-            
-            # Atualiza registros com dados da Asaas
-            appointment.asaas_payment_id = charge_data.get('id')
-            appointment.asaas_invoice_url = charge_data.get('invoiceUrl')
-            appointment.status = 'PROCESSING'
-            appointment.total_amount = total_value
-            appointment.platform_amount = round(total_value * (platform_percentage / 100), 2)
-            appointment.professional_amount = total_value - appointment.platform_amount
-            appointment.due_date = due_date
-            appointment.save()
-            
-            payment_transaction.asaas_transaction_id = charge_data.get('id')
-            payment_transaction.asaas_charge_id = charge_data.get('id')
-            payment_transaction.status = 'COMPLETED'
-            payment_transaction.response_data = charge_data
-            payment_transaction.processed_at = timezone.now()
-            payment_transaction.save()
-        
-        logger.info(f"Cobrança criada para consulta {appointment_id}: {charge_data.get('id')}")
-        
-        return {
-            'status': 'created',
-            'payment_id': charge_data.get('id'),
-            'invoice_url': charge_data.get('invoiceUrl'),
-            'appointment_id': appointment_id
-        }
-        
-    except Appointment.DoesNotExist:
-        logger.error(f"Consulta {appointment_id} não encontrada")
-        return {'status': 'error', 'message': 'Appointment not found'}
-        
-    except Exception as exc:
-        logger.error(f"Erro ao criar cobrança para consulta {appointment_id}: {exc}")
-        
-        # Atualiza status de erro na consulta
-        try:
-            appointment = Appointment.objects.get(id=appointment_id)
-            appointment.status = 'FAILED'
-            appointment.last_payment_error = str(exc)
-            appointment.payment_attempts += 1
-            appointment.save(update_fields=['status', 'last_payment_error', 'payment_attempts'])
-        except Appointment.DoesNotExist:
-            pass
-        
-        # Retry se não excedeu tentativas
-        if self.request.retries < self.max_retries:
-            raise self.retry(exc=exc, countdown=30 * (2 ** self.request.retries))
-        else:
-            # Falha definitiva
-            logger.error(f"Falha definitiva ao criar cobrança para consulta {appointment_id}")
-            return {'status': 'failed', 'message': str(exc)}
-
-@shared_task(bind=True, max_retries=3)
-def sync_payment_status_task(self, payment_id):
-    """Sincroniza status de pagamento com Asaas"""
-    
-    try:
-        appointment = Appointment.objects.get(asaas_payment_id=payment_id)
-        asaas_service = AsaasService()
-        
-        # Consulta status na Asaas
-        payment_data = asaas_service.get_payment_status(payment_id)
-        
-        # Mapeia status Asaas para nosso sistema
-        status_mapping = {
-            'PENDING': 'PENDING',
-            'RECEIVED': 'PAID',
-            'CONFIRMED': 'PAID',
-            'OVERDUE': 'PENDING',
-            'REFUNDED': 'REFUNDED',
-            'RECEIVED_IN_CASH': 'PAID',
-            'REFUND_REQUESTED': 'REFUNDED',
-            'CHARGEBACK_REQUESTED': 'CANCELED',
-            'CHARGEBACK_DISPUTE': 'CANCELED',
-            'AWAITING_CHARGEBACK_REVERSAL': 'CANCELED',
-            'DUNNING_REQUESTED': 'CANCELED',
-            'DUNNING_RECEIVED': 'CANCELED',
-            'AWAITING_RISK_ANALYSIS': 'PROCESSING',
-        }
-        
-        new_status = status_mapping.get(payment_data.get('status'), 'PENDING')
-        
-        if appointment.status != new_status:
-            with transaction.atomic():
-                old_status = appointment.status
-                appointment.status = new_status
-                
-                if new_status == 'PAID':
-                    appointment.paid_at = timezone.now()
-                
-                appointment.save(update_fields=['status', 'paid_at'])
-                
-                logger.info(f"Status da consulta {appointment.id} atualizado: {old_status} -> {new_status}")
-        
-        return {
-            'status': 'updated',
-            'appointment_id': appointment.id,
-            'old_status': appointment.status,
-            'new_status': new_status
-        }
-        
-    except Appointment.DoesNotExist:
-        logger.error(f"Consulta com payment_id {payment_id} não encontrada")
-        return {'status': 'error', 'message': 'Appointment not found'}
-        
-    except Exception as exc:
-        logger.error(f"Erro ao sincronizar status do pagamento {payment_id}: {exc}")
-        raise self.retry(exc=exc, countdown=60)
-```
-### 5. Integração nas Views da API
-
-**`appointments/views.py`**
-```python
-from decimal import Decimal
-from django.db import transaction
-from rest_framework import status
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from payments.tasks import create_asaas_charge_task
-import logging
-
-logger = logging.getLogger('appointments.views')
-
-class AppointmentViewSet(viewsets.ModelViewSet):
-    # ... código existente ...
-    
-    def perform_create(self, serializer):
-        """Cria consulta e inicia processo de cobrança"""
-        
-        # Validações de negócio
-        total_value = serializer.validated_data.get('total_amount')
-        if not total_value or total_value <= 0:
-            raise ValidationError({"total_amount": "Valor da consulta deve ser maior que zero"})
-        
-        professional = serializer.validated_data.get('professional')
-        if professional.integration_status != 'ACTIVE':
-            raise ValidationError({
-                "professional": "Profissional não possui integração ativa com sistema de pagamentos"
-            })
-        
-        with transaction.atomic():
-            # 1. Salva a consulta
-            appointment = serializer.save(status='PENDING')
-            
-            # 2. Agenda criação da cobrança após commit
-            transaction.on_commit(
-                lambda: create_asaas_charge_task.delay(
-                    appointment.id,
-                    float(total_value),
-                    appointment.due_date.isoformat() if appointment.due_date else None
-                )
-            )
-            
-            logger.info(f"Consulta criada: {appointment.id}, valor: R$ {total_value}")
-    
-    @action(detail=True, methods=['post'])
-    def cancel_payment(self, request, pk=None):
-        """Cancela pagamento de uma consulta"""
-        
-        appointment = self.get_object()
-        
-        if not appointment.asaas_payment_id:
-            return Response(
-                {"detail": "Consulta não possui pagamento para cancelar"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        if appointment.status in ['PAID', 'REFUNDED']:
-            return Response(
-                {"detail": "Não é possível cancelar pagamento já processado"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Agenda cancelamento
-        from payments.tasks import cancel_asaas_payment_task
-        cancel_asaas_payment_task.delay(appointment.asaas_payment_id)
-        
-        return Response({"detail": "Cancelamento iniciado"})
-    
-    @action(detail=True, methods=['get'])
-    def payment_status(self, request, pk=None):
-        """Consulta status atualizado do pagamento"""
-        
-        appointment = self.get_object()
-        
-        if not appointment.asaas_payment_id:
-            return Response({"status": "NO_PAYMENT"})
-        
-        # Agenda sincronização
-        from payments.tasks import sync_payment_status_task
-        sync_payment_status_task.delay(appointment.asaas_payment_id)
-        
-        return Response({
-            "status": appointment.status,
-            "payment_id": appointment.asaas_payment_id,
-            "invoice_url": appointment.asaas_invoice_url,
-            "total_amount": appointment.total_amount,
-            "platform_amount": appointment.platform_amount,
-            "professional_amount": appointment.professional_amount,
-            "paid_at": appointment.paid_at
-        })
-```
-
-
-### 6. Sistema de Webhooks Robusto
-
-**`payments/views.py`**
-```python
-import hashlib
-import hmac
-import json
-import logging
-from django.conf import settings
-from django.db import transaction
-from django.http import HttpResponse
-from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-from appointments.models import Appointment
-from .models import PaymentTransaction
-
-logger = logging.getLogger('payments.webhooks')
-
-def verify_webhook_signature(request):
-    """Verifica assinatura do webhook para garantir autenticidade"""
-    
-    signature = request.headers.get('X-Asaas-Signature')
-    if not signature:
-        return False
-    
-    # Calcula hash esperado
-    secret = settings.ASAAS_WEBHOOK_SECRET
-    payload = request.body
-    expected_signature = hmac.new(
-        secret.encode('utf-8'),
-        payload,
-        hashlib.sha256
-    ).hexdigest()
-    
-    return hmac.compare_digest(signature, expected_signature)
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def asaas_webhook_receiver(request):
-    """
-    Endpoint para receber webhooks da Asaas
-    Implementa idempotência e processamento seguro
-    """
-    
-    # Log da requisição recebida
-    logger.info("Webhook recebido da Asaas", extra={
-        'headers': dict(request.headers),
-        'body_size': len(request.body)
-    })
-    
-    # 1. Verificação de segurança
-    if not verify_webhook_signature(request):
-        logger.warning("Webhook rejeitado: assinatura inválida")
-        return HttpResponse(status=401)
-    
-    try:
-        # 2. Parse do payload
-        webhook_data = json.loads(request.body)
-        event_type = webhook_data.get('event')
-        payment_data = webhook_data.get('payment', {})
-        payment_id = payment_data.get('id')
-        
-        if not payment_id or not event_type:
-            logger.warning("Webhook rejeitado: dados incompletos")
-            return HttpResponse(status=400)
-        
-        # 3. Processamento idempotente
-        with transaction.atomic():
-            # Verifica se já processamos este evento
-            webhook_id = webhook_data.get('id')
-            if webhook_id:
-                # Implementar tabela de webhooks processados se necessário
-                pass
-            
-            result = process_payment_event(payment_id, event_type, payment_data, webhook_data)
-            
-            logger.info(f"Webhook processado: {event_type} para payment {payment_id}", extra={
-                'event_type': event_type,
-                'payment_id': payment_id,
-                'result': result
-            })
-        
-        return HttpResponse(status=200)
-        
-    except json.JSONDecodeError:
-        logger.error("Webhook rejeitado: JSON inválido")
-        return HttpResponse(status=400)
-    except Exception as e:
-        logger.error(f"Erro ao processar webhook: {e}", exc_info=True)
-        return HttpResponse(status=500)
-
-def process_payment_event(payment_id, event_type, payment_data, webhook_data):
-    """
-    Processa eventos de pagamento de forma idempotente
-    """
-    
-    try:
-        appointment = Appointment.objects.select_related('professional').get(
-            asaas_payment_id=payment_id
-        )
-    except Appointment.DoesNotExist:
-        logger.warning(f"Appointment não encontrado para payment_id: {payment_id}")
-        return {'status': 'not_found'}
-    
-    # Mapeamento de eventos para status
-    event_status_mapping = {
-        'PAYMENT_RECEIVED': 'PAID',
-        'PAYMENT_CONFIRMED': 'PAID',
-        'PAYMENT_OVERDUE': 'PENDING',
-        'PAYMENT_DELETED': 'CANCELED',
-        'PAYMENT_REFUNDED': 'REFUNDED',
-        'PAYMENT_RECEIVED_IN_CASH': 'PAID',
-        'PAYMENT_CHARGEBACK_REQUESTED': 'CANCELED',
-        'PAYMENT_AWAITING_RISK_ANALYSIS': 'PROCESSING',
-    }
-    
-    new_status = event_status_mapping.get(event_type)
-    if not new_status:
-        logger.info(f"Evento não mapeado: {event_type}")
-        return {'status': 'ignored', 'event': event_type}
-    
-    # Verifica se precisa atualizar (idempotência)
-    if appointment.status == new_status:
-        logger.info(f"Status já atualizado para {new_status}, ignorando")
-        return {'status': 'already_updated'}
-    
-    # Validações de transição de status
-    valid_transitions = {
-        'PENDING': ['PROCESSING', 'PAID', 'CANCELED', 'FAILED'],
-        'PROCESSING': ['PAID', 'CANCELED', 'FAILED'],
-        'PAID': ['REFUNDED'],
-        'CANCELED': [],
-        'REFUNDED': [],
-        'FAILED': ['PENDING', 'PROCESSING']
-    }
-    
-    if new_status not in valid_transitions.get(appointment.status, []):
-        logger.warning(f"Transição inválida: {appointment.status} -> {new_status}")
-        return {'status': 'invalid_transition'}
-    
-    # Atualiza status
-    old_status = appointment.status
-    appointment.status = new_status
-    
-    # Campos específicos por evento
-    if event_type in ['PAYMENT_RECEIVED', 'PAYMENT_CONFIRMED', 'PAYMENT_RECEIVED_IN_CASH']:
-        appointment.paid_at = timezone.now()
-        
-        # Atualiza método de pagamento se disponível
-        billing_type = payment_data.get('billingType')
-        if billing_type:
-            method_mapping = {
-                'BOLETO': 'BOLETO',
-                'CREDIT_CARD': 'CREDIT_CARD',
-                'DEBIT_CARD': 'DEBIT_CARD',
-                'PIX': 'PIX',
-                'BANK_SLIP': 'BANK_SLIP'
-            }
-            appointment.payment_method = method_mapping.get(billing_type, billing_type)
-    
-    appointment.save(update_fields=['status', 'paid_at', 'payment_method'])
-    
-    # Registra transação
-    PaymentTransaction.objects.create(
-        appointment=appointment,
-        professional=appointment.professional,
-        transaction_type='WEBHOOK',
-        status='COMPLETED',
-        amount=appointment.total_amount or 0,
-        asaas_transaction_id=f"webhook_{payment_id}_{timezone.now().timestamp()}",
-        request_data=webhook_data,
-        response_data={'status_updated': f"{old_status} -> {new_status}"},
-        processed_at=timezone.now()
-    )
-    
-    # Triggers pós-processamento
-    post_process_payment_event(appointment, event_type, old_status, new_status)
-    
-    return {
-        'status': 'updated',
-        'old_status': old_status,
-        'new_status': new_status,
-        'appointment_id': appointment.id
-    }
-
-def post_process_payment_event(appointment, event_type, old_status, new_status):
-    """
-    Processa ações pós-evento (notificações, emails, etc.)
-    """
-    
-    # Enviar notificações
-    if new_status == 'PAID':
-        # Notificar profissional sobre pagamento recebido
-        from payments.tasks import send_payment_confirmation_task
-        send_payment_confirmation_task.delay(appointment.id)
-        
-    elif new_status == 'CANCELED':
-        # Notificar sobre cancelamento
-        from payments.tasks import send_payment_cancellation_task
-        send_payment_cancellation_task.delay(appointment.id)
-        
-    elif new_status == 'REFUNDED':
-        # Processar reembolso
-        from payments.tasks import process_refund_task
-        process_refund_task.delay(appointment.id)
-```
-
----
-
-## 🔒 Segurança e Compliance
-
-### Configurações de Segurança
-
-**`settings/security.py`**
-```python
-# Configurações específicas para pagamentos
-ASAAS_API_URL = env('ASAAS_API_URL', default='https://www.asaas.com/api/v3')
-ASAAS_API_KEY = env('ASAAS_API_KEY')  # Obrigatório
-ASAAS_WEBHOOK_TOKEN = env('ASAAS_WEBHOOK_TOKEN')  # Token de validação
-ASAAS_WEBHOOK_SECRET = env('ASAAS_WEBHOOK_SECRET')  # Chave para assinatura
-
-# Timeouts e limites
-ASAAS_REQUEST_TIMEOUT = 30
-ASAAS_MAX_RETRIES = 3
-ASAAS_RETRY_DELAY = 60
-
-# Configurações de audit log
-AUDIT_LOG_PAYMENTS = True
-AUDIT_LOG_RETENTION_DAYS = 2555  # 7 anos para compliance
-```
-
-### Validações e Sanitização
-
-```python
-from decimal import Decimal, InvalidOperation
-from django.core.exceptions import ValidationError
-
-def validate_payment_amount(amount):
-    """Valida valor de pagamento"""
-    try:
-        decimal_amount = Decimal(str(amount))
-        if decimal_amount <= 0:
-            raise ValidationError("Valor deve ser maior que zero")
-        if decimal_amount > Decimal('999999.99'):
-            raise ValidationError("Valor excede limite máximo")
-        return decimal_amount
-    except (InvalidOperation, TypeError):
-        raise ValidationError("Valor inválido")
-
-def sanitize_customer_data(data):
-    """Sanitiza dados do cliente antes de enviar para Asaas"""
-    
-    import re
-    
-    sanitized = {}
-    
-    # Nome: apenas letras, espaços e acentos
-    if 'name' in data:
-        sanitized['name'] = re.sub(r'[^a-zA-ZÀ-ÿ\s]', '', data['name']).strip()
-    
-    # Email: validação básica
-    if 'email' in data:
-        email = data['email'].lower().strip()
-        if re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
-            sanitized['email'] = email
-    
-    # Telefone: apenas números
-    if 'phone' in data:
-        phone = re.sub(r'[^\d]', '', data['phone'])
-        if len(phone) >= 10:
-            sanitized['phone'] = phone
-    
-    return sanitized
-```
-
----
-
-## 📊 Monitoramento e Observabilidade
-
-### Métricas Customizadas
-
-**`payments/metrics.py`**
-```python
-from django.core.cache import cache
-from django.db.models import Sum, Count, Avg
-from django.utils import timezone
-from datetime import timedelta
-from .models import PaymentTransaction
-from appointments.models import Appointment
-
-class PaymentMetrics:
-    """Classe para coleta de métricas de pagamento"""
-    
-    @staticmethod
-    def get_daily_metrics(date=None):
-        """Retorna métricas do dia"""
-        
-        if not date:
-            date = timezone.now().date()
-        
-        cache_key = f"payment_metrics_{date}"
-        cached = cache.get(cache_key)
-        
-        if cached:
-            return cached
-        
-        start_date = timezone.datetime.combine(date, timezone.datetime.min.time())
-        end_date = start_date + timedelta(days=1)
-        
-        # Consultas do período
-        appointments = Appointment.objects.filter(
-            created_at__gte=start_date,
-            created_at__lt=end_date
-        )
-        
-        metrics = {
-            'total_appointments': appointments.count(),
-            'total_revenue': appointments.aggregate(Sum('total_amount'))['total_amount__sum'] or 0,
-            'paid_appointments': appointments.filter(status='PAID').count(),
-            'pending_appointments': appointments.filter(status='PENDING').count(),
-            'failed_appointments': appointments.filter(status='FAILED').count(),
-            'conversion_rate': 0,
-            'average_amount': appointments.aggregate(Avg('total_amount'))['total_amount__avg'] or 0,
-        }
-        
-        if metrics['total_appointments'] > 0:
-            metrics['conversion_rate'] = (metrics['paid_appointments'] / metrics['total_appointments']) * 100
-        
-        # Cache por 1 hora
-        cache.set(cache_key, metrics, 3600)
-        
-        return metrics
-    
-    @staticmethod
-    def get_integration_health():
-        """Retorna status de saúde da integração"""
-        
-        last_hour = timezone.now() - timedelta(hours=1)
-        
-        # Transações com erro na última hora
-        error_count = PaymentTransaction.objects.filter(
-            created_at__gte=last_hour,
-            status='FAILED'
-        ).count()
-        
-        # Tempo médio de processamento
-        successful_transactions = PaymentTransaction.objects.filter(
-            created_at__gte=last_hour,
-            status='COMPLETED',
-            processed_at__isnull=False
-        )
-        
-        avg_processing_time = 0
-        if successful_transactions.exists():
-            processing_times = []
-            for tx in successful_transactions:
-                delta = tx.processed_at - tx.created_at
-                processing_times.append(delta.total_seconds())
-            avg_processing_time = sum(processing_times) / len(processing_times)
-        
-        return {
-            'status': 'healthy' if error_count < 5 else 'degraded',
-            'error_count_last_hour': error_count,
-            'avg_processing_time_seconds': avg_processing_time,
-            'last_successful_payment': PaymentTransaction.objects.filter(
-                status='COMPLETED'
-            ).order_by('-processed_at').first()
-        }
-```
-
-### Dashboard de Monitoramento
-
-```python
-# payments/admin.py
-from django.contrib import admin
-from django.db.models import Count, Sum
-from django.utils.html import format_html
-from .models import PaymentTransaction
-
-@admin.register(PaymentTransaction)
-class PaymentTransactionAdmin(admin.ModelAdmin):
-    list_display = [
-        'id', 'appointment', 'professional', 'transaction_type', 
-        'status', 'amount', 'created_at', 'processing_time'
-    ]
-    list_filter = ['status', 'transaction_type', 'created_at']
-    search_fields = ['asaas_transaction_id', 'appointment__id', 'professional__preferred_name']
-    readonly_fields = ['processing_time', 'request_data', 'response_data']
-    
-    def processing_time(self, obj):
-        if obj.processed_at and obj.created_at:
-            delta = obj.processed_at - obj.created_at
-            return f"{delta.total_seconds():.2f}s"
-        return "-"
-    processing_time.short_description = "Tempo de Processamento"
-    
-    def changelist_view(self, request, extra_context=None):
-        # Adiciona métricas ao contexto
-        response = super().changelist_view(request, extra_context)
-        
-        try:
-            qs = response.context_data['cl'].queryset
-            
-            # Métricas gerais
-            metrics = {
-                'total_transactions': qs.count(),
-                'total_amount': qs.aggregate(Sum('amount'))['amount__sum'] or 0,
-                'status_breakdown': dict(qs.values('status').annotate(count=Count('id')).values_list('status', 'count')),
-                'avg_amount': qs.aggregate(models.Avg('amount'))['amount__avg'] or 0,
-            }
-            
-            response.context_data['metrics'] = metrics
-            
-        except (AttributeError, KeyError):
-            pass
-            
-        return response
-```
-
----
-
-## 🔁 Fluxo Completo Atualizado
+## 🔄 Fluxo de Integração
 
 ```mermaid
 graph TD
-    A[Usuário agenda consulta] --> B[API valida dados]
-    B --> C[Salva consulta no BD]
-    C --> D[Dispara tarefa Celery]
-    D --> E[Tarefa cria cobrança na Asaas]
-    E --> F[Asaas retorna dados do pagamento]
-    F --> G[Atualiza consulta com payment_id]
-    G --> H[Retorna resposta ao usuário]
+    A[Cliente agenda consulta] --> B[Sistema cria cobrança]
+    B --> C[Asaas gera fatura]
+    C --> D[Cliente efetua pagamento]
+    D --> E[Webhook notifica sistema]
+    E --> F[Split automático executado]
+    F --> G[Profissional e plataforma recebem valores]
     
-    I[Cliente efetua pagamento] --> J[Asaas processa pagamento]
-    J --> K[Asaas envia webhook]
-    K --> L[API valida assinatura]
-    L --> M[Processa evento de forma idempotente]
-    M --> N[Atualiza status da consulta]
-    N --> O[Registra transação]
-    O --> P[Dispara notificações]
-    
-    Q[Split automático] --> R[Valor para profissional]
-    Q --> S[Taxa para plataforma]
-    
-    style A fill:#e1f5fe
-    style H fill:#c8e6c9
-    style P fill:#c8e6c9
-    style Q fill:#fff3e0
+    style A fill:#e3f2fd
+    style G fill:#e8f5e8
+    style F fill:#fff3e0
 ```
+
+### Estados do Pagamento
+- **PENDING**: Aguardando pagamento do cliente
+- **PROCESSING**: Pagamento sendo processado
+- **PAID**: Pagamento confirmado e split executado
+- **FAILED**: Falha no processamento
+- **REFUNDED**: Valor reembolsado
+
+---
+
+## 🛠️ Stack Tecnológico
+
+### Componentes Principais
+- **Backend**: Django REST Framework
+- **Pagamentos**: API Asaas para cobrança e split
+- **Processamento Assíncrono**: Celery com Redis/RabbitMQ
+- **Webhooks**: Endpoints seguros para notificações
+- **Monitoramento**: Logs estruturados e métricas
+
+### Integrações Necessárias
+- **Modelo de Dados**: Extensão para campos de pagamento
+- **API Layer**: Endpoints para gestão de cobranças
+- **Background Tasks**: Processamento assíncrono
+- **Webhook Handler**: Recepção de notificações Asaas
+- **Admin Interface**: Dashboard de monitoramento
+
+---
+
+## 📊 Monitoramento e Métricas
+
+### KPIs Financeiros
+- Volume total de transações
+- Taxa de conversão de pagamentos
+- Tempo médio de processamento
+- Taxa de falhas e reprocessamentos
+- Distribuição por método de pagamento
+
+### Saúde do Sistema
+- Disponibilidade da integração Asaas
+- Performance de webhooks
+- Status de tarefas assíncronas
+- Alertas para falhas críticas
 
 ---
 
 ## 🚀 Roadmap de Implementação
 
-### Fase 1: Infraestrutura Base (2-3 semanas)
-- [ ] Criação do app `payments`
-- [ ] Modelos de dados estendidos
-- [ ] Configuração do Celery
-- [ ] Camada de serviços Asaas
-- [ ] Testes unitários básicos
+### **Fase 1: Fundação** (2-3 semanas)
+- Extensão dos modelos de dados
+- Configuração do ambiente Asaas
+- Implementação da camada de serviços básica
+- Testes unitários iniciais
 
-### Fase 2: Integração Core (3-4 semanas)
-- [ ] Sinais para automação
-- [ ] Tarefas assíncronas
-- [ ] Sistema de webhooks
-- [ ] Validações e segurança
-- [ ] Testes de integração
+### **Fase 2: Integração Core** (3-4 semanas)
+- Sistema de cobrança automatizada
+- Processamento de webhooks
+- Split de pagamento funcional
+- Validação e tratamento de erros
 
-### Fase 3: Monitoramento e Observabilidade (2 semanas)
-- [ ] Sistema de métricas
-- [ ] Dashboard administrativo
-- [ ] Alertas e notificações
-- [ ] Logs estruturados
-- [ ] Documentação completa
+### **Fase 3: Monitoramento** (2 semanas)
+- Dashboard administrativo
+- Sistema de métricas
+- Alertas e notificações
+- Logs estruturados
 
-### Fase 4: Otimização e Escala (2-3 semanas)
-- [ ] Cache inteligente
-- [ ] Otimização de queries
-- [ ] Rate limiting
-- [ ] Backup e recovery
-- [ ] Testes de carga
+### **Fase 4: Otimização** (2-3 semanas)
+- Performance e escalabilidade
+- Testes de carga
+- Documentação completa
+- Treinamento da equipe
 
 ---
 
-## 📋 Checklist de Implementação
+## 🔒 Segurança e Compliance
 
-### Pré-requisitos
-- [ ] Conta Asaas configurada
-- [ ] API keys obtidas
-- [ ] Webhook endpoints configurados
-- [ ] Certificados SSL válidos
-- [ ] Redis/RabbitMQ para Celery
+### Medidas de Segurança
+- **Validação de Webhooks**: Assinatura criptográfica obrigatória
+- **Sanitização de Dados**: Validação rigorosa de entradas
+- **Auditoria Completa**: Log de todas as operações financeiras
+- **Backup e Recovery**: Estratégia de contingência definida
 
-### Configuração
-- [ ] Variáveis de ambiente definidas
-- [ ] Configurações de segurança
-- [ ] Backup de dados
-- [ ] Monitoramento ativo
-- [ ] Logs centralizados
-
-### Testes
-- [ ] Testes unitários (cobertura > 90%)
-- [ ] Testes de integração
-- [ ] Testes de carga
-- [ ] Testes de falha
-- [ ] Validação em ambiente staging
-
-### Deploy
-- [ ] Deploy gradual (canary)
-- [ ] Monitoramento em tempo real
-- [ ] Rollback plan
-- [ ] Documentação atualizada
-- [ ] Treinamento da equipe
+### Compliance
+- Retenção de logs por 7 anos (regulamentação financeira)
+- Criptografia de dados sensíveis
+- Controle de acesso baseado em perfis
+- Relatórios de auditoria automatizados
 
 ---
 
-## 💡 Benefícios Esperados
+## 💡 Benefícios Estratégicos
 
-### Técnicos
-- **Redução de 80%** no tempo de processamento manual
-- **99.9%** de disponibilidade do sistema de pagamentos
-- **Zero** intervenção manual para pagamentos normais
-- **Rastreabilidade completa** de todas as transações
+### **Para a Plataforma**
+- Receita automatizada e previsível
+- Redução de custos operacionais
+- Escalabilidade para crescimento
+- Dados para análise de negócio
 
-### Negócio
-- **Melhoria na experiência** do usuário e profissional
-- **Redução de custos** operacionais
-- **Aumento na conversão** de consultas
-- **Compliance** automático com regulamentações
+### **Para Profissionais**
+- Recebimento instantâneo
+- Transparência nos repasses
+- Menos burocracia financeira
+- Foco na atividade médica
 
-### Escalabilidade
-- **Suporte a milhares** de transações simultâneas
-- **Arquitetura preparada** para novos métodos de pagamento
-- **Integração simples** com outros sistemas
-- **Expansão facilitada** para novos mercados
+### **Para Clientes**
+- Múltiplas formas de pagamento
+- Segurança nas transações
+- Experiência simplificada
+- Transparência nos valores
+
+---
+
+## 📈 Métricas de Sucesso
+
+### **Técnicas**
+- 99% de disponibilidade do sistema
+- Tempo médio de processamento < 60 segundos
+- Taxa de falhas < 3%
+- Cobertura de testes > 70%
+
+### **Negócio**
+- Receita incremental por split
+- Redução de inadimplência
+- Escalabilidade do modelo de cobrança
+- Transparência financeira para parceiros
+- Aumento na conversão
+- Redução no processamento manual
+- ROI positivo
+- NPS alto de profissionais e clientes
+
+Esta proposta conceitual serve como base para discussões estratégicas e planejamento detalhado da implementação, focando nos benefícios e arquitetura de alto nível rather than detalhes de implementação específicos.
 
