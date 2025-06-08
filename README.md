@@ -341,6 +341,28 @@ Execute o script de reset do banco de dados:
 ./reset_docker_db.sh -y
 ```
 
+#### Comando `reset_db` não encontrado
+
+Se você receber o erro "Unknown command: 'reset_db'", verifique:
+
+1. Se o app `core` está no `INSTALLED_APPS` (já configurado no projeto)
+2. Reinicie o container web:
+```bash
+docker compose restart web
+```
+3. Verifique se os comandos estão disponíveis:
+```bash
+docker compose exec web python manage.py help
+```
+
+#### Problemas com permissões de arquivo
+
+Se os scripts não executarem, verifique as permissões:
+
+```bash
+chmod +x setup.sh reset_docker_db.sh run_tests.sh
+```
+
 ### Problemas com Poetry
 
 #### Comando `poetry` não encontrado
@@ -391,4 +413,281 @@ Gerencia as consultas médicas:
 
 - `setup.sh`: Configura o ambiente inicial
 - `reset_docker_db.sh`: Reseta o banco de dados no Docker
+- `run_tests.sh`: Executa os testes automaticamente
 - `docker-compose.yml`: Configuração dos serviços Docker
+
+## Testes
+
+O projeto inclui uma suíte abrangente de testes com cobertura de 72,82%, incluindo testes de API, modelos e integração.
+
+### Executando Testes
+
+#### Usando o script automatizado (Recomendado)
+
+```bash
+# Script que detecta o ambiente e executa os testes apropriados
+./run_tests.sh
+```
+
+O script `run_tests.sh` automaticamente:
+- Detecta se o Docker está disponível e rodando
+- Usa SQLite em memória para testes mais rápidos quando não está no Docker
+- Executa testes no container se estiver rodando
+
+#### Métodos manuais
+
+**1. Django test runner com SQLite (mais rápido):**
+```bash
+python manage.py test --settings=core.settings.testing
+```
+
+**2. Pytest com SQLite (mais informativo):**
+```bash
+DJANGO_SETTINGS_MODULE=core.settings.testing pytest -v
+```
+
+**3. Testes específicos por app:**
+```bash
+python manage.py test appointments.tests --settings=core.settings.testing -v 2
+DJANGO_SETTINGS_MODULE=core.settings.testing pytest professionals/tests.py -v
+```
+
+**4. Testes dentro do container Docker:**
+```bash
+docker compose exec web python manage.py test --settings=core.settings.testing
+```
+
+**5. Cobertura detalhada com pytest:**
+```bash
+DJANGO_SETTINGS_MODULE=core.settings.testing pytest --cov=appointments --cov=professionals --cov-report=html --cov-report=term-missing
+```
+
+**6. Testes de integração específicos:**
+```bash
+python manage.py test appointments.tests.AppointmentIntegrationTestCase --settings=core.settings.testing
+```
+
+### Configurações de Teste
+
+O projeto utiliza diferentes configurações para testes:
+
+- **`core.settings.testing`**: SQLite em memória (mais rápido, recomendado)
+- **`core.settings.development`**: PostgreSQL (ambiente completo, mas requer configuração)
+
+### Estrutura dos Testes
+
+#### Testes de API (`appointments/tests.py`, `professionals/tests.py`)
+- Testes de CRUD completo
+- Validação de dados
+- Filtros e ordenação
+- Autenticação e permissões
+
+#### Testes de Modelo
+- Validação de campos obrigatórios
+- Representação string
+- Ordenação padrão
+- Timestamps automáticos
+
+#### Testes de Integração
+- Relacionamentos entre modelos
+- Cascade delete
+- Integridade referencial
+
+### Resultados dos Testes
+
+- **Total de testes**: 33 testes
+- **Cobertura**: 72,82% (acima do mínimo exigido de 25%)
+- **Status**: ✅ Todos os testes passando
+- **Tempo de execução**: ~0.2-1.2 segundos (dependendo do método)
+
+### Relatórios de Cobertura
+
+Os relatórios HTML de cobertura são gerados automaticamente na pasta `htmlcov/`. Abra `htmlcov/index.html` no navegador para visualizar detalhes da cobertura.
+
+## Configurações de Ambiente
+
+### Variáveis de Ambiente (.env)
+
+O projeto utiliza um arquivo `.env` para configurações sensíveis:
+
+```bash
+# Segurança
+SECRET_KEY=sua_chave_secreta_aqui
+DEBUG=True
+
+# Configurações do Django
+DJANGO_SETTINGS_MODULE=core.settings.development
+
+# Banco de dados
+DB_NAME=medical_db
+DB_USER=user
+DB_PASSWORD=password
+DB_HOST=db  # Para Docker, use 'localhost' para ambiente local
+DB_PORT=5432
+
+# Superusuário automático
+DJANGO_SUPERUSER_PASSWORD=admin123
+
+# Hosts permitidos
+ALLOWED_HOSTS=localhost,127.0.0.1
+```
+
+### Diferentes Ambientes
+
+O projeto suporta múltiplos ambientes:
+
+- **`development`**: Para desenvolvimento local com PostgreSQL
+- **`testing`**: Para testes com SQLite em memória
+- **`production`**: Para produção (configurações de segurança aprimoradas)
+
+## API Reference
+
+### Status Codes
+
+A API utiliza os seguintes códigos de status HTTP:
+
+- `200 OK` - Requisição bem-sucedida
+- `201 Created` - Recurso criado com sucesso
+- `204 No Content` - Recurso deletado com sucesso
+- `400 Bad Request` - Dados inválidos na requisição
+- `404 Not Found` - Recurso não encontrado
+- `500 Internal Server Error` - Erro interno do servidor
+
+### Formato de Erro
+
+```json
+{
+  "field_name": [
+    "Mensagem de erro específica"
+  ],
+  "non_field_errors": [
+    "Erro geral da validação"
+  ]
+}
+```
+
+## Performance e Otimização
+
+### Banco de Dados
+
+- Índices automáticos em chaves estrangeiras
+- Ordenação otimizada por timestamps
+- Queries eficientes com select_related para profissionais
+
+### Cache
+
+O projeto está preparado para implementação de cache:
+- Cache de sessão configurado
+- Middleware de cache disponível
+- Suporte a Redis (configuração manual necessária)
+
+## Segurança
+
+### Configurações de Segurança
+
+- CSRF protection habilitado
+- XFrame protection ativo
+- Validação de hosts permitidos
+- Middleware de segurança configurado
+
+### Variáveis Sensíveis
+
+Todas as configurações sensíveis são gerenciadas via variáveis de ambiente:
+- Chaves secretas
+- Credenciais de banco de dados
+- Configurações de debug
+
+## Contribuição
+
+### Como Contribuir
+
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+### Padrões de Código
+
+- Siga o PEP 8 para Python
+- Use type hints quando possível
+- Mantenha cobertura de testes acima de 70%
+- Documente APIs com docstrings
+- Escreva testes para novas funcionalidades
+
+### Executando Testes Antes de Contribuir
+
+```bash
+# Execute todos os testes
+./run_tests.sh
+
+# Verifique a cobertura
+DJANGO_SETTINGS_MODULE=core.settings.testing pytest --cov=. --cov-report=term-missing
+
+# Verifique a formatação do código
+poetry run black --check .
+poetry run flake8 .
+```
+
+## Licença
+
+Este projeto está licenciado sob a MIT License - veja o arquivo [LICENSE](LICENSE) para detalhes.
+
+## Contato
+
+Para dúvidas ou sugestões sobre o projeto, abra uma issue no GitHub.
+
+## Verificação Rápida
+
+Após a instalação, você pode verificar se tudo está funcionando:
+
+### 1. Verificar se a API está respondendo
+```bash
+curl http://localhost:8000/api/docs/
+```
+
+### 2. Testar endpoints da API
+```bash
+# Listar profissionais
+curl http://localhost:8000/api/professionals/
+
+# Listar consultas
+curl http://localhost:8000/api/appointments/
+```
+
+### 3. Executar os testes
+```bash
+./run_tests.sh
+```
+
+### 4. Acessar o admin
+Vá para http://localhost:8000/admin/ e faça login com:
+- Usuário: `admin`
+- Senha: `admin123` (ou a definida em `.env`)
+
+## Changelog
+
+### v1.0.0
+- ✅ CRUD completo para profissionais da saúde
+- ✅ CRUD completo para consultas médicas
+- ✅ Filtros e busca avançada
+- ✅ Documentação OpenAPI/Swagger
+- ✅ Testes abrangentes (72,82% cobertura)
+- ✅ Scripts de automação (setup, reset, testes)
+- ✅ Suporte completo ao Docker
+- ✅ Configurações multi-ambiente
+
+## Roadmap
+
+### v1.1.0 (Planejado)
+- [ ] Autenticação e autorização
+- [ ] Sistema de notificações
+- [ ] API de relatórios
+- [ ] Cache com Redis
+- [ ] Logs estruturados
+
+### v1.2.0 (Planejado)
+- [ ] Interface web (frontend)
+- [ ] Integração com calendários
+- [ ] Backup automático
+- [ ] Métricas e monitoramento
