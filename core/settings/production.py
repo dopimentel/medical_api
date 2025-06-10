@@ -1,10 +1,12 @@
-"""
-Configurações para ambiente de produção
-"""
+"""Configurações para ambiente de produção."""
 from .base import *
 
 DEBUG = False
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="", cast=lambda v: [s.strip() for s in v.split(",")])
+ALLOWED_HOSTS = config(
+    "ALLOWED_HOSTS", 
+    default="", 
+    cast=lambda v: [s.strip() for s in v.split(",")]
+)
 
 # Database
 DATABASES = {
@@ -38,7 +40,10 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
-            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "format": (
+                "{levelname} {asctime} {module} {process:d} "
+                "{thread:d} {message}"
+            ),
             "style": "{",
         },
     },
@@ -60,3 +65,38 @@ LOGGING = {
         "level": "INFO",
     },
 }
+
+REST_FRAMEWORK.update(
+    {
+        "DEFAULT_RENDERER_CLASSES": [
+            "rest_framework.renderers.JSONRenderer",
+        ],
+        "DEFAULT_AUTHENTICATION_CLASSES": [
+            "rest_framework.authentication.SessionAuthentication",
+            "rest_framework.authentication.BasicAuthentication",
+        ],
+        "DEFAULT_PERMISSION_CLASSES": [
+            "rest_framework.permissions.IsAuthenticated",
+        ],
+        "DEFAULT_PAGINATION_CLASS": (
+            "rest_framework.pagination.PageNumberPagination"
+        ),
+        "PAGE_SIZE": 20,
+    }
+)
+SPECTACULAR_SETTINGS.update(
+    {
+        "SERVE_INCLUDE_SCHEMA": True,
+        "SWAGGER_UI_SETTINGS": {
+            "deepLinking": True,
+            "displayOperationId": True,
+            "defaultModelsExpandDepth": -1,
+            "defaultModelExpandDepth": 1,
+            "docExpansion": "none",
+        },
+        "REDOC_SETTINGS": {
+            "LAZY_RENDERING": True,
+            "FAVICON_URL": "/static/favicon.ico",
+        },
+    }
+)
