@@ -78,6 +78,10 @@ jobs:
 
       - name: Create ZIP Deployment Package
         run: zip -r deploy.zip . -x ".git/*" ".github/*" ".*" "*/__pycache__/*"
+      
+      # Debugging Step: List ZIP Contents
+      - name: 6a. Listar Conteúdo do ZIP para Debug
+        run: unzip -l deploy.zip
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
