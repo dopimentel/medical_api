@@ -70,6 +70,9 @@ jobs:
       - name: Install Dependencies
         run: poetry install
 
+      - name: Install poetry-plugin-export
+        run: poetry self add poetry-plugin-export
+
       - name: Generate requirements.txt
         run: poetry export -f requirements.txt --output requirements.txt --without-hashes
 
@@ -81,7 +84,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Deploy to Elastic Beanstalk (Staging)
         uses: einaregilsson/beanstalk-deploy@v22
@@ -91,7 +94,7 @@ jobs:
           application_name: medical-api
           environment_name: 'medical-api-staging'
           version_label: "staging-${{ github.sha }}"
-          region: ${{ secrets.AWS_REGION }}
+          region: us-west-2
           deployment_package: deploy.zip
 
   # ====================================
@@ -122,6 +125,9 @@ jobs:
       - name: Install Dependencies
         run: poetry install
 
+      - name: Install poetry-plugin-export
+        run: poetry self add poetry-plugin-export
+
       - name: Generate requirements.txt
         run: poetry export -f requirements.txt --output requirements.txt --without-hashes
 
@@ -133,7 +139,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Deploy to Elastic Beanstalk (Production)
         uses: einaregilsson/beanstalk-deploy@v22
@@ -143,5 +149,5 @@ jobs:
           application_name: medical-api
           environment_name: 'medical-api-production'
           version_label: "production-${{ github.sha }}"
-          region: ${{ secrets.AWS_REGION }}
           deployment_package: deploy.zip
+          region: us-west-2
