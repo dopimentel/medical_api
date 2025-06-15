@@ -21,3 +21,10 @@ echo "Running collectstatic..."
 poetry run python manage.py collectstatic --noinput
 
 echo "Django commands executed successfully."
+
+# --- ADICIONE ESTAS LINHAS DE DEBUG ---
+echo "--- Capturing Gunicorn startup log ---"
+# Dá um tempo para o serviço web tentar iniciar e falhar
+sleep 5 
+# Salva o log de status do serviço web em um arquivo que podemos ler
+journalctl -xeu web.service --no-pager > /tmp/web_service_startup.log || true
