@@ -12,19 +12,35 @@ export PATH=$PATH:/root/.local/bin
 # estejam disponíveis para os comandos seguintes.
 source /opt/elasticbeanstalk/deployment/env
 
-# Executa os comandos do Django usando 'poetry run', que ativa o venv
-# Os Platform Hooks rodam por padrão no diretório /var/app/staging.
-echo "Running Django migrations..."
+# Imprime marcadores para facilitar a busca no log
+echo "--- INÍCIO DO SCRIPT DE DEBUG 01_django_commands.sh ---"
+
+echo "PASSO 1: Verificando o usuário atual"
+whoami
+
+echo "PASSO 2: Verificando o diretório de trabalho atual"
+pwd
+
+echo "PASSO 3: Listando o conteúdo de /var/app/current/"
+ls -la /var/app/current/
+
+echo "PASSO 4: Verificando se o arquivo de variáveis de ambiente existe"
+if [ -f /opt/elasticbeanstalk/deployment/env ]; then
+    echo "Arquivo 'env' encontrado. Carregando variáveis..."
+    source /opt/elasticbeanstalk/deployment/env
+else
+    echo "ERRO CRÍTICO: Arquivo /opt/elasticbeanstalk/deployment/env NÃO ENCONTRADO."
+    exit 1
+fi
+
+echo "PASSO 5: Verificando se o Poetry está no PATH"
+export PATH=$PATH:/root/.local/bin
+which poetry
+
+echo "PASSO 6: Tentando rodar o migrate (o erro deve aparecer abaixo se falhar)"
 poetry run python manage.py migrate --noinput
 
-echo "Running collectstatic..."
+echo "PASSO 7: Tentando rodar o collectstatic"
 poetry run python manage.py collectstatic --noinput
 
-echo "Django commands executed successfully."
-
-# --- ADICIONE ESTAS LINHAS DE DEBUG ---
-echo "--- Capturing Gunicorn startup log ---"
-# Dá um tempo para o serviço web tentar iniciar e falhar
-sleep 5 
-# Salva o log de status do serviço web em um arquivo que podemos ler
-journalctl -xeu web.service --no-pager > /tmp/web_service_startup.log || true
+echo "--- FIM DO SCRIPT DE DEBUG 01_django_commands.sh (SUCESSO) ---"
