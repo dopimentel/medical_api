@@ -77,8 +77,15 @@ jobs:
         run: poetry export -f requirements.txt --output requirements.txt --without-hashes
 
       - name: Create ZIP Deployment Package
-        run: zip -r deploy.zip . -x ".git/*" ".github/*" ".*" "*/__pycache__/*"
-      
+        run: |
+          zip -r deploy.zip . -x \
+          ".git/*" \
+          ".github/*" \
+          ".pytest_cache/*" \
+          "*/__pycache__/*" \
+          "htmlcov/*" \
+          "*.pyc"
+
       # Debugging Step: List ZIP Contents
       - name: 6a. Listar Conteúdo do ZIP para Debug
         run: unzip -l deploy.zip
@@ -136,8 +143,15 @@ jobs:
         run: poetry export -f requirements.txt --output requirements.txt --without-hashes
 
       - name: Create ZIP Deployment Package
-        run: zip -r deploy.zip . -x ".git/*" ".github/*" ".*" "*/__pycache__/*"
-
+        run: |
+          zip -r deploy.zip . -x \
+          ".git/*" \
+          ".github/*" \
+          ".pytest_cache/*" \
+          "*/__pycache__/*" \
+          "htmlcov/*" \
+          "*.pyc"
+          
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
