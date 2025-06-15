@@ -27,14 +27,14 @@ DATABASES = {
 # Security
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False  # Alterado para False no EB
 SECURE_HSTS_SECONDS = 31536000
 SECURE_REDIRECT_EXEMPT = []
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = False  # Alterado para False no EB - SSL é manejado pelo Load Balancer
+SESSION_COOKIE_SECURE = False  # Alterado para False no EB
+CSRF_COOKIE_SECURE = False  # Alterado para False no EB
 
-# Logging
+# Logging - Configuração simplificada para EB
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -48,12 +48,6 @@ LOGGING = {
         },
     },
     "handlers": {
-        "file": {
-            "level": "INFO",
-            "class": "logging.FileHandler",
-            "filename": "/var/log/django/medical_api.log",
-            "formatter": "verbose",
-        },
         "console": {
             "level": "INFO",
             "class": "logging.StreamHandler",
@@ -61,7 +55,7 @@ LOGGING = {
         },
     },
     "root": {
-        "handlers": ["file", "console"],
+        "handlers": ["console"],
         "level": "INFO",
     },
 }

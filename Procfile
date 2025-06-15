@@ -1,1 +1,1 @@
-web: source /opt/elasticbeanstalk/deployment/env && gunicorn --bind 0.0.0.0:8000 core.wsgi:application
+web: gunicorn --bind 0.0.0.0:8000 core.wsgi:application
