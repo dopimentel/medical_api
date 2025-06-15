@@ -1,18 +1,19 @@
 #!/bin/bash
 
-# O 'set -e' garante que o script pare imediatamente se algum comando falhar.
+# Garante que o script pare se qualquer comando falhar
 set -e
 
-# Ativa o ambiente virtual da aplicação.
-# No hook 'postdeploy', o código já está em /var/app/current.
-source /var/app/current/venv/bin/activate
+# O Elastic Beanstalk exporta as variáveis de ambiente para um arquivo.
+# Carregar este arquivo garante que todas as variáveis (DB_HOST, etc.)
+# estejam disponíveis para os comandos seguintes.
+source /opt/elasticbeanstalk/deployment/env
 
-# Executa os comandos do Django.
-# A variável DJANGO_SETTINGS_MODULE é lida das propriedades do ambiente EB.
+# Executa os comandos do Django usando 'poetry run', que ativa o venv
+# Os Platform Hooks rodam por padrão no diretório /var/app/staging.
 echo "Running Django migrations..."
-django-admin migrate --noinput
+poetry run python manage.py migrate --noinput
 
 echo "Running collectstatic..."
-django-admin collectstatic --noinput
+poetry run python manage.py collectstatic --noinput
 
 echo "Django commands executed successfully."
