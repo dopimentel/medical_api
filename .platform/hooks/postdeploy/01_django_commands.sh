@@ -18,6 +18,13 @@ cd /var/app/current
 echo "Running Django migrations..."
 python manage.py migrate --noinput
 
+echo "Running createsuperuser..."
+if ! python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); exit(0) if User.objects.filter(username='$DJANGO_SUPERUSER_USERNAME').exists() else exit(1)"; then
+    python manage.py createsuperuser --noinput --username "$DJANGO_SUPERUSER_USERNAME" --email "$DJANGO_SUPERUSER_EMAIL"
+else
+    echo "Superuser $DJANGO_SUPERUSER_USERNAME already exists. Skipping createsuperuser."
+fi
+
 echo "Running collectstatic..."
 python manage.py collectstatic --noinput
 

@@ -106,8 +106,13 @@ if [ "$execution_option" = "1" ]; then
     
     if [[ $create_superuser =~ ^[Yy]$ ]]; then
         echo -e "${YELLOW}Criando superusuário...${NC}"
-        echo -e "${YELLOW}Siga as instruções para definir nome de usuário, e-mail e senha:${NC}"
-        docker compose exec web python manage.py createsuperuser
+        # Verificar se as variáveis de ambiente estão setadas
+        if [[ -n "$DJANGO_SUPERUSER_USERNAME" && -n "$DJANGO_SUPERUSER_EMAIL" ]]; then
+            docker compose exec web python manage.py createsuperuser --noinput --username "$DJANGO_SUPERUSER_USERNAME" --email "$DJANGO_SUPERUSER_EMAIL"
+        else
+            echo -e "${YELLOW}Siga as instruções para definir nome de usuário, e-mail e senha:${NC}"
+            docker compose exec web python manage.py createsuperuser
+        fi
         echo -e "${GREEN}Superusuário criado com sucesso!${NC}"
     fi
     

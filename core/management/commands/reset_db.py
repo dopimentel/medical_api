@@ -103,13 +103,13 @@ class Command(BaseCommand):
 
     def seed_data(self):
         """Seed the database with initial data."""
-        self.stdout.write(self.style.NOTICE("Criando superusuário..."))
-        call_command(
-            "createsuperuser",
-            "--username=admin",
-            "--email=admin@example.com",
-            "--no-input",
-        )
+        # self.stdout.write(self.style.NOTICE("Criando superusuário..."))
+        # call_command(
+        #     "createsuperuser",
+        #     "--username=admin",
+        #     "--email=admin@example.com",
+        #     "--no-input",
+        # )
 
         self.stdout.write(self.style.NOTICE("Criando profissionais..."))
         self.create_professionals()
