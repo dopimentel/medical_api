@@ -6,7 +6,7 @@ if ! command -v docker &> /dev/null || ! docker info &> /dev/null
 then
     echo "Docker não está em execução. Iniciando os testes localmente..."
     echo "Usando SQLite em memória para os testes."
-    python manage.py test --settings=core.test_settings
+    python manage.py test --settings=core.settings.testing
     exit $?
 fi
 
@@ -23,9 +23,9 @@ if ! $DOCKER_COMPOSE ps | grep -q "web.*running"
 then
     echo "O container web não está rodando. Iniciando os testes localmente..."
     echo "Usando SQLite em memória para os testes."
-    python manage.py test --settings=core.test_settings
+    python manage.py test --settings=core.settings.testing
     exit $?
 fi
 
 echo "Executando testes no container Docker..."
-$DOCKER_COMPOSE exec -T web python manage.py test --settings=core.test_settings
+$DOCKER_COMPOSE exec -T web python manage.py test --settings=core.settings.testing
