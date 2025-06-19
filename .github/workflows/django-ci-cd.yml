@@ -23,6 +23,22 @@ jobs:
     name: Run Django Tests with Coverage
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_medical_api
+        ports:
+          - 5432:5432
+        # Opção de health check para garantir que o Postgres está pronto
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -40,8 +56,13 @@ jobs:
 
       - name: Run Pytest with Coverage
         env:
-          DJANGO_SETTINGS_MODULE: core.settings.testing
+          DJANGO_SETTINGS_MODULE: core.settings.development
           SECRET_KEY: "dummy-key-for-testing"
+          DB_NAME: test_medical_api
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          DB_HOST: localhost
+          DB_PORT: 5432
         run: |
           poetry run pytest --cov=. --cov-report=html
 
