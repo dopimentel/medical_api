@@ -1,12 +1,13 @@
 # Medical API
 
-API RESTful para gerenciamento de profissionais da saúde e consultas médicas.
+API RESTful e interface web para gerenciamento de profissionais da saúde e consultas médicas.
 
 ## Recursos
 
 - Cadastro, edição, exclusão e listagem de profissionais da saúde
 - Cadastro e edição de consultas médicas com vínculo ao profissional
 - Busca por consultas utilizando o ID do profissional
+- Interface web com estatísticas e visualização de consultas em tempo real
 - Segurança e validação de dados
 
 ## Tecnologias utilizadas
@@ -15,6 +16,8 @@ API RESTful para gerenciamento de profissionais da saúde e consultas médicas.
 - Django REST Framework
 - PostgreSQL
 - Docker e Docker Compose
+- Templates Django para renderização no lado do servidor
+- JavaScript para interatividade na interface web
 - Poetry para gerenciamento de dependências
 
 ## Configuração do ambiente
@@ -186,8 +189,9 @@ A documentação da API está disponível em:
 {
   "preferred_name": "Dr. Ana Silva",
   "profession": "Cardiologista",
+  "specialty": "Cardiologia Pediátrica",
   "address": "Av. Paulista, 1000 - São Paulo/SP",
-  "contact": "ana.silva@email.com / (11) 98765-4321"
+  "contact": "11987654321"
 }
 ```
 
@@ -224,6 +228,40 @@ A documentação da API está disponível em:
 - `?date_start=2025-06-01T00:00:00Z` - Filtra por data maior ou igual
 - `?date_end=2025-06-30T23:59:59Z` - Filtra por data menor ou igual
 - `?ordering=date` - Ordenação por data (use -date para ordem decrescente)
+
+## Interface Web
+
+### Acesso às páginas principais
+
+- **Interface principal**: `http://localhost:8000/`
+- **Painel Admin**: `http://localhost:8000/admin/`
+- **Documentação API**: `http://localhost:8000/api/docs/`
+
+### Funcionalidades da Interface Web
+
+A interface web oferece:
+
+1. **Visão geral do sistema**
+   - Total de profissionais cadastrados
+   - Total de consultas agendadas
+   - Total de especialidades disponíveis
+
+2. **Seção de especialidades**
+   - Listagem de todas as especialidades disponíveis
+   - Profissionais associados a cada especialidade
+
+3. **Próximas consultas**
+   - Tabela responsiva com as próximas consultas agendadas
+   - Contador regressivo mostrando o tempo restante até cada consulta
+   - Informações do profissional e especialidade
+
+4. **Formulário de contato**
+   - Interatividade com feedback visual
+   - Validação de campos obrigatórios
+
+5. **Design responsivo**
+   - Adaptação para diferentes dispositivos e tamanhos de tela
+   - Layout moderno e funcional
 
 ## Estrutura dos dados
 
@@ -425,14 +463,47 @@ O projeto inclui uma suíte abrangente de testes com cobertura de 72,82%, inclui
 #### Usando o script automatizado (Recomendado)
 
 ```bash
-# Script que detecta o ambiente e executa os testes apropriados
+# Executar testes (automático)
 ./run_tests.sh
+
+# Forçar execução local
+./run_tests.sh --local
+
+# Ver ajuda
+./run_tests.sh --help
 ```
 
 O script `run_tests.sh` automaticamente:
 - Detecta se o Docker está disponível e rodando
 - Usa SQLite em memória para testes mais rápidos quando não está no Docker
 - Executa testes no container se estiver rodando
+
+#### Como funciona a detecção automática de ambiente
+
+O script detecta automaticamente qual ambiente usar:
+
+1. **Docker disponível + containers rodando**: 
+   - ✅ Executa no container com PostgreSQL
+   - ✅ Cria banco de teste temporário
+   - ✅ Executa migrações e seeders
+   - ✅ Remove banco após os testes
+
+2. **Docker indisponível ou containers parados**:
+   - ✅ Executa localmente com SQLite em memória
+   - ✅ Mais rápido para desenvolvimento
+
+#### Pipeline de testes no container
+
+Quando executa no container, o script segue estes passos:
+
+```
+1. 🔍 Verificar se containers estão rodando
+2. 📊 Criar banco de teste temporário (test_medical_api)
+3. 🔧 Executar migrações no banco de teste
+4. 🌱 Popular com dados iniciais (opcional)
+5. 🧪 Executar testes com pytest
+6. 🧹 Remover banco de teste (cleanup automático)
+```
 
 #### Métodos manuais
 
@@ -471,8 +542,36 @@ python manage.py test appointments.tests.AppointmentIntegrationTestCase --settin
 
 O projeto utiliza diferentes configurações para testes:
 
-- **`core.settings.testing`**: SQLite em memória (mais rápido, recomendado)
-- **`core.settings.development`**: PostgreSQL (ambiente completo, mas requer configuração)
+#### Para Container (PostgreSQL)
+- **Arquivo**: `core/settings/development.py`
+- **Banco**: PostgreSQL no container Docker
+- **Database**: `test_medical_api` (temporário)
+- **Vantagem**: Mesmo ambiente que desenvolvimento
+
+#### Para Local (SQLite)  
+- **Arquivo**: `core/settings/testing.py`
+- **Banco**: SQLite em memória (`:memory:`)
+- **Vantagem**: Mais rápido, sem dependências
+
+### Factories para Testes
+O projeto usa **Factory Boy** para criar dados de teste dinamicamente:
+
+```python
+# Exemplo de uso nas classes de teste
+from tests.factories import ProfessionalFactory, AppointmentFactory
+
+# Criar dados únicos automaticamente
+professional = ProfessionalFactory()
+
+# Customizar campos específicos
+professional = ProfessionalFactory(
+    preferred_name="Dr. João Silva",
+    profession="Cardiologista"
+)
+
+# Criar múltiplos registros
+professionals = ProfessionalFactory.create_batch(5)
+```
 
 ### Estrutura dos Testes
 
@@ -667,6 +766,14 @@ Vá para http://localhost:8000/admin/ e faça login com:
 
 ## Changelog
 
+### v1.0.1
+- ✅ Interface web com renderização do lado do servidor
+- ✅ Página inicial com estatísticas em tempo real
+- ✅ Visualização de próximas consultas com contador regressivo
+- ✅ Listagem de especialidades disponíveis
+- ✅ Formulário de contato interativo
+- ✅ Design responsivo e moderno
+
 ### v1.0.0
 - ✅ CRUD completo para profissionais da saúde
 - ✅ CRUD completo para consultas médicas
@@ -685,9 +792,12 @@ Vá para http://localhost:8000/admin/ e faça login com:
 - [ ] API de relatórios
 - [ ] Cache com Redis
 - [ ] Logs estruturados
+- [ ] Expansão da interface web
 
 ### v1.2.0 (Planejado)
-- [ ] Interface web (frontend)
+- [ ] Listagem detalhada de profissionais
+- [ ] Página de detalhes do profissional
+- [ ] Agendamento online de consultas
 - [ ] Integração com calendários
 - [ ] Backup automático
 - [ ] Métricas e monitoramento
