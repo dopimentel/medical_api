@@ -5,6 +5,15 @@ on:
     branches: ["main", "develop"]
   pull_request:
     branches: ["main", "develop"]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Ambiente para deploy'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
 
 jobs:
   # ====================================
@@ -102,12 +111,12 @@ jobs:
           deployment_package: deploy.zip
 
   # ====================================
-  # Job 3: Deploy para PRODUCTION (main)
+  # Job 3: Deploy para PRODUCTION (main) - Manual
   # ====================================
   deploy-production:
     name: Deploy to Production (AWS)
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'
     runs-on: ubuntu-latest
 
     environment:
