@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Medical API - Gerenciamento de Consultas Médicas{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="container">
+        <h1>Sistema de Gestão de Consultas Médicas</h1>
+        <p>Plataforma completa para gerenciamento de profissionais de saúde e consultas médicas. API robusta e interface amigável para otimizar o fluxo de atendimento.</p>
+        <div>
+            <a href="{% url 'swagger-ui' %}" class="btn" style="margin-right: 10px;">Acessar Documentação API</a>
+            <a href="{% url 'admin:index' %}" class="btn" style="background-color: #2ecc71;">Acessar Painel Admin</a>
+        </div>
+    </div>
+</section>
+
+<section>
+    <div class="container">
+        <h2>Nossos Recursos</h2>
+        <div class="services">
+            <div class="service-card">
+                <h3>Gestão de Profissionais</h3>
+                <p>Cadastro e gerenciamento completo de profissionais da saúde, incluindo especialidades, horários de atendimento e disponibilidade.</p>
+                <a href="{% url 'admin:professionals_professional_changelist' %}" class="btn" style="margin-top: 15px;">Gerenciar no Admin</a>
+            </div>
+            
+            <div class="service-card">
+                <h3>Agendamento de Consultas</h3>
+                <p>Sistema inteligente de agendamento que verifica disponibilidade, evita conflitos de horário e envia lembretes automáticos.</p>
+                <a href="{% url 'admin:appointments_appointment_changelist' %}" class="btn" style="margin-top: 15px;">Consultas no Admin</a>
+            </div>
+            
+            <div class="service-card">
+                <h3>API RESTful Completa</h3>
+                <p>Integração facilitada com outros sistemas através de nossa API documentada e segura, com suporte a múltiplos formatos.</p>
+                <a href="{% url 'swagger-ui' %}" class="btn" style="margin-top: 15px;">Documentação API</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section style="background-color: white;">
+    <div class="container">
+        <h2>Estatísticas do Sistema</h2>
+        <div class="services">
+            <div class="service-card">
+                <h3>{{ professionals_count }}</h3>
+                <p>Profissionais Cadastrados</p>
+            </div>
+            
+            <div class="service-card">
+                <h3>{{ appointments_count }}</h3>
+                <p>Consultas Agendadas</p>
+            </div>
+            
+            <div class="service-card">
+                <h3>{{ specialties_count }}</h3>
+                <p>Especialidades Disponíveis</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section>
+    <div class="container">
+        <h2>Especialidades Disponíveis</h2>
+        {% if specialties %}
+        <div class="specialty-cards">
+            {% for specialty_info in specialties %}
+            <div class="specialty-card">
+                <h3>{{ specialty_info.name }}</h3>
+                <p class="specialty-count">{{ specialty_info.count }} profissionais</p>
+                <div class="specialty-professionals">
+                    {% for professional in specialty_info.professionals %}
+                    <div class="specialty-professional">
+                        <strong>{{ professional.preferred_name }}</strong>
+                        <p class="specialty-professional-info">{{ professional.profession }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                <a href="{% url 'admin:professionals_professional_changelist' %}" class="btn specialty-btn">Ver Todos</a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="text-align: center; padding: 20px;">Nenhuma especialidade cadastrada no momento.</p>
+        {% endif %}
+    </div>
+</section>
+
+<section style="background-color: #f9f9f9;">
+    <div class="container">
+        <h2>Próximas Consultas</h2>
+        {% if upcoming_appointments %}
+            <div class="responsive-table-container">
+                <table class="responsive-table">
+                    <thead>
+                        <tr>
+                            <th>Data e Hora</th>
+                            <th>Profissional</th>
+                            <th>Especialidade</th>
+                            <th>Tempo Restante</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in upcoming_appointments %}
+                        <tr>
+                            <td>{{ appointment.date|date:"d/m/Y H:i" }}</td>
+                            <td>{{ appointment.professional.preferred_name }}</td>
+                            <td>{{ appointment.professional.specialty|default:"Não especificada" }}</td>
+                            <td class="countdown" data-date="{{ appointment.date|date:'Y-m-d H:i:s' }}">
+                                <span class="countdown-value">Calculando...</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p style="text-align: center; padding: 20px;">Não há consultas agendadas no momento.</p>
+        {% endif %}
+    </div>
+</section>
+
+<section id="contato">
+    <div class="container">
+        <h2>Entre em Contato</h2>
+        <p style="text-align: center; margin-bottom: 40px;">Precisa de ajuda ou tem alguma dúvida? Nossa equipe está pronta para ajudar!</p>
+        
+        <form id="contactForm" style="max-width: 600px; margin: 0 auto;">
+            <div style="margin-bottom: 20px;">
+                <label for="name" class="form-label">Nome</label>
+                <input type="text" id="name" name="name" class="form-control" required>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" name="email" class="form-control" required>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="message" class="form-label">Mensagem</label>
+                <textarea id="message" name="message" rows="5" class="form-control" required></textarea>
+            </div>
+            
+            <button type="submit" class="submit-btn">Enviar Mensagem</button>
+            
+            <div id="successMessage" class="success-message">
+                <strong>Mensagem enviada com sucesso!</strong> 
+                <p>Agradecemos pelo contato. Nossa equipe responderá em breve.</p>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
