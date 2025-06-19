@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Medical API{% endblock %}</title>
+    {% load static %}
+    <link rel="icon" type="image/svg+xml" href="{% static 'images/stethoscope.svg' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Medical API</h1>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'home' %}">Início</a></li>
+                    <li><a href="{% url 'admin:index' %}">Admin</a></li>
+                    <li><a href="{% url 'swagger-ui' %}">API Docs</a></li>
+                    <li><a href="{% url 'home' %}#contato">Contato</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; {% now "Y" %} Medical API. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+    
+    <script>
+        // Função para calcular e atualizar as contagens regressivas
+        function updateCountdowns() {
+            const countdowns = document.querySelectorAll('.countdown');
+            const now = new Date();
+            
+            countdowns.forEach(countdown => {
+                const targetDate = new Date(countdown.dataset.date);
+                const diff = targetDate - now;
+                
+                if (diff <= 0) {
+                    countdown.querySelector('.countdown-value').textContent = 'Em andamento';
+                    return;
+                }
+                
+                // Calcular dias, horas, minutos
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                
+                let timeText = '';
+                if (days > 0) {
+                    timeText += `${days} dia${days > 1 ? 's' : ''} `;
+                }
+                timeText += `${hours}h ${minutes}min`;
+                
+                countdown.querySelector('.countdown-value').textContent = timeText;
+            });
+        }
+        
+        // Iniciar contagem regressiva quando a página carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            // Atualizar contagens regressivas
+            updateCountdowns();
+            setInterval(updateCountdowns, 60000); // Atualizar a cada minuto
+            
+            // Configurar o formulário de contato
+            const contactForm = document.getElementById('contactForm');
+            if (contactForm) {
+                contactForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Em um caso real, aqui enviaríamos os dados para o servidor
+                    // Simular envio com timeout
+                    setTimeout(() => {
+                        document.getElementById('successMessage').style.display = 'block';
+                        contactForm.reset();
+                    }, 500);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

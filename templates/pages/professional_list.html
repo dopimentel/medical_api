@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Medical API{% endblock %}
+
+{% block content %}
+<section class="hero" style="padding: 40px 0;">
+    <div class="container">
+        <h1>{{ title }}</h1>
+        <p>Conheça os profissionais disponíveis em nossa plataforma.</p>
+    </div>
+</section>
+
+<section>
+    <div class="container">
+        {% if professionals %}
+            {% if specialties %}
+                {% for specialty, specialists in specialties.items %}
+                    <h2 style="margin-top: 30px; color: #3498db; border-bottom: 2px solid #3498db; padding-bottom: 10px;">
+                        {{ specialty }}
+                    </h2>
+                    <div class="services" style="margin-bottom: 40px;">
+                        {% for professional in specialists %}
+                            <div class="service-card">
+                                <h3>{{ professional.preferred_name }}</h3>
+                                <p><strong>Profissão:</strong> {{ professional.profession }}</p>
+                                <p><strong>Contato:</strong> {{ professional.contact|slice:":2" }}**********</p>
+                                <a href="{% url 'professional-detail' professional.id %}" class="btn" style="margin-top: 15px; background-color: #2ecc71;">Ver Detalhes</a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="services">
+                    {% for professional in professionals %}
+                        <div class="service-card">
+                            <h3>{{ professional.preferred_name }}</h3>
+                            <p><strong>Especialidade:</strong> {{ professional.specialty|default:"Não especificada" }}</p>
+                            <p><strong>Profissão:</strong> {{ professional.profession }}</p>
+                            <p><strong>Contato:</strong> {{ professional.contact|slice:":2" }}**********</p>
+                            <a href="{% url 'professional-detail' professional.id %}" class="btn" style="margin-top: 15px; background-color: #2ecc71;">Ver Detalhes</a>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% else %}
+            <p style="text-align: center; padding: 50px;">Nenhum profissional cadastrado no momento.</p>
+        {% endif %}
+    </div>
+</section>
+
+<section style="background-color: #f9f9f9; padding: 40px 0;">
+    <div class="container">
+        <div style="text-align: center;">
+            <h2>Não encontrou o que procurava?</h2>
+            <p style="margin-bottom: 20px;">Entre em contato conosco para mais informações sobre profissionais disponíveis.</p>
+            <a href="{% url 'home' %}#contato" class="btn">Fale Conosco</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
