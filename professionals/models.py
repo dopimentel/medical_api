@@ -9,6 +9,7 @@ class Professional(models.Model):
 
     preferred_name = models.CharField("Nome Social", max_length=255)
     profession = models.CharField("Profissão", max_length=100)
+    specialty = models.CharField("Especialidade", max_length=100, blank=True, null=True)
     address = models.TextField("Endereço")
     phone_regex = RegexValidator(
         regex=r'^\d{11}$',
