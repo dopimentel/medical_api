@@ -15,6 +15,9 @@ DATABASES = {
         "PASSWORD": config("DB_PASSWORD", default="postgres"),
         "HOST": config("DB_HOST", default="localhost"),
         "PORT": config("DB_PORT", default=5432, cast=int),
+        "TEST": {
+            "NAME": "test_medical_api",  # Nome específico para banco de teste
+        },
     }
 }
 

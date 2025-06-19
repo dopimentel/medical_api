@@ -1,0 +1,37 @@
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+Dockerrun.aws.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# IDEs
+.idea/
+.vscode/
+
+# Arquivos de ambiente e logs
+.env
+.env.*
+*.log
+logs/
+local_db.sqlite3
+
+# Testes e Cobertura
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Dependências do sistema
+node_modules/

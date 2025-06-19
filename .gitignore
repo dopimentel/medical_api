@@ -85,3 +85,9 @@ Desktop.ini
 poetry.toml
 core/__pycache__/settings.cpython-312.pyc
 core/__pycache__/settings.cpython-312.pyc
+
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

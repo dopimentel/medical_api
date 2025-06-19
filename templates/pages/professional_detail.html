@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ professional.preferred_name }} - Medical API{% endblock %}
+
+{% block content %}
+<section class="hero" style="padding: 40px 0;">
+    <div class="container">
+        <h1>{{ professional.preferred_name }}</h1>
+        <p>{{ professional.profession }} {% if professional.specialty %}especialista em {{ professional.specialty }}{% endif %}</p>
+        <a href="{% url 'professional-list' %}" class="btn" style="background-color: #3498db;">
+            Voltar para lista de profissionais
+        </a>
+    </div>
+</section>
+
+<section>
+    <div class="container">
+        <div style="display: flex; flex-wrap: wrap; gap: 30px;">
+            <div style="flex: 1; min-width: 300px;">
+                <div class="service-card">
+                    <h2>Informações do Profissional</h2>
+                    <p><strong>Nome:</strong> {{ professional.preferred_name }}</p>
+                    <p><strong>Profissão:</strong> {{ professional.profession }}</p>
+                    <p><strong>Especialidade:</strong> {{ professional.specialty|default:"Não especificada" }}</p>
+                    <p><strong>Endereço:</strong> {{ professional.address }}</p>
+                    <p><strong>Contato:</strong> {{ professional.contact|slice:":2" }}**********</p>
+                </div>
+            </div>
+            
+            <div style="flex: 1; min-width: 300px;">
+                <div class="service-card">
+                    <h2>Próximas Consultas</h2>
+                    {% if upcoming_appointments %}
+                        <ul style="list-style: none; padding: 0;">
+                            {% for appointment in upcoming_appointments %}
+                                <li style="margin-bottom: 15px; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
+                                    <strong>Data:</strong> {{ appointment.date|date:"d/m/Y" }}<br>
+                                    <strong>Horário:</strong> {{ appointment.date|date:"H:i" }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>Não há consultas agendadas para este profissional.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section style="background-color: #f9f9f9; padding: 40px 0; margin-top: 30px;">
+    <div class="container">
+        <div style="text-align: center;">
+            <h2>Precisa agendar uma consulta?</h2>
+            <p style="margin-bottom: 20px;">Entre em contato conosco para agendar uma consulta com {{ professional.preferred_name }}.</p>
+            <a href="{% url 'home' %}#contato" class="btn">Fale Conosco</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

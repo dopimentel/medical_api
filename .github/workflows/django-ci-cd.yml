@@ -1,0 +1,187 @@
+name: CI/CD Django to AWS Elastic Beanstalk
+
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+    branches: ["main", "develop"]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Ambiente para deploy'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+
+jobs:
+  # ====================================
+  # Job 1: Testes Django com Coverage
+  # ====================================
+  test:
+    name: Run Django Tests with Coverage
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_medical_api
+        ports:
+          - 5432:5432
+        # Opção de health check para garantir que o Postgres está pronto
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install Dependencies
+        run: poetry install
+
+      - name: Run Pytest with Coverage
+        env:
+          DJANGO_SETTINGS_MODULE: core.settings.development
+          SECRET_KEY: "dummy-key-for-testing"
+          DB_NAME: test_medical_api
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          DB_HOST: localhost
+          DB_PORT: 5432
+        run: |
+          poetry run pytest --cov=. --cov-report=html
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov
+
+  # ====================================
+  # Job 2: Deploy para STAGING (develop)
+  # ====================================
+  deploy-staging:
+    name: Deploy to Staging (AWS)
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+
+    environment:
+      name: staging
+      url: http://medical-api-staging.us-west-2.elasticbeanstalk.com/
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install Dependencies
+        run: poetry install
+
+      - name: Install poetry-plugin-export
+        run: poetry self add poetry-plugin-export
+
+      - name: Generate requirements.txt
+        run: poetry export -f requirements.txt --output requirements.txt --without-hashes
+
+      - name: Create ZIP Deployment Package
+        run: zip -r deploy.zip . -x ".git/*" ".github/*" ".pytest_cache/*" "htmlcov/*" "docker-compose.yml" "Dockerfile" "*.sqlite3" "__pycache__/*" "*/__pycache__/*" "tests/*" "scripts/*" "poetry.lock" "pyproject.toml" "*.log" ".env*" "venv/*" ".idea/*"
+
+      # Debugging Step: List ZIP Contents
+      - name: 6a. Listar Conteúdo do ZIP para Debug
+        run: unzip -l deploy.zip
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Deploy to Elastic Beanstalk (Staging)
+        uses: einaregilsson/beanstalk-deploy@v22
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: medical-api
+          environment_name: 'medical-api-staging'
+          version_label: "staging-${{ github.sha }}"
+          region: us-west-2
+          deployment_package: deploy.zip
+
+  # ====================================
+  # Job 3: Deploy para PRODUCTION (main) - Manual
+  # ====================================
+  deploy-production:
+    name: Deploy to Production (AWS)
+    needs: test
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'
+    runs-on: ubuntu-latest
+
+    environment:
+      name: production
+      url: https://producao.seusite.com
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install Dependencies
+        run: poetry install
+
+      - name: Install poetry-plugin-export
+        run: poetry self add poetry-plugin-export
+
+      - name: Generate requirements.txt
+        run: poetry export -f requirements.txt --output requirements.txt --without-hashes
+
+      - name: Create ZIP Deployment Package
+        run: zip -r deploy.zip . -x ".git/*" ".github/*" ".pytest_cache/*" "htmlcov/*" "docker-compose.yml" "Dockerfile" "*.sqlite3" "__pycache__/*" "*/__pycache__/*" "tests/*" "scripts/*" "poetry.lock" "pyproject.toml" "*.log" ".env*" "venv/*" ".idea/*"
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Deploy to Elastic Beanstalk (Production)
+        uses: einaregilsson/beanstalk-deploy@v22
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: medical-api
+          environment_name: 'medical-api-production'
+          version_label: "production-${{ github.sha }}"
+          deployment_package: deploy.zip
+          region: us-west-2

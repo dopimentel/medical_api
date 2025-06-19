@@ -36,4 +36,13 @@ urlpatterns = [
     # API URLs
     path("api/", include("professionals.urls")),
     path("api/", include("appointments.urls")),
+    # Interface Web
+    path("", include("pages.urls")),
 ]
+
+# Configuração para servir arquivos estáticos em desenvolvimento
+from django.conf import settings
+from django.conf.urls.static import static
+
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
